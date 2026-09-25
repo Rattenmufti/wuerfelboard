@@ -201,27 +201,25 @@
         }
 
         .header-bar { position: relative; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
         .header-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
         
-        /* DESKTOP MODUS ANPASSUNG FÜR UHR & AKKU IN OBERER ZEILE */
-        body:not(.mobile-mode) .header-bar {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+        /* DESKTOP MODUS ANPASSUNG FÜR UHR & AKKU IN DER ÜBERSCHRIFT-ZEILE */
+        body:not(.mobile-mode) .header-left {
+            display: flex;
             align-items: center;
+            gap: 20px;
         }
-
         body:not(.mobile-mode) .header-status {
             position: static;
             transform: none;
-            justify-self: center;
-            font-size: 1.15rem;
+            font-size: 0.95rem;
             font-weight: bold;
-            gap: 15px;
+            gap: 10px;
             color: var(--text);
             background: rgba(0, 0, 0, 0.2);
-            padding: 4px 16px;
-            border-radius: 12px;
+            padding: 3px 10px;
+            border-radius: 8px;
             border: 1px solid var(--border);
         }
 
@@ -413,10 +411,10 @@
     <div class="header-bar">
         <div class="header-left">
             <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.9855 Stable</h2>
-        </div>
-        <div id="status-bar" class="header-status">
-            <span id="time-display">13:52</span>
-            <span id="battery-display">🔋 67%</span>
+            <div id="status-bar" class="header-status">
+                <span id="time-display">13:52</span>
+                <span id="battery-display">🔋 67%</span>
+            </div>
         </div>
         <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
             <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
