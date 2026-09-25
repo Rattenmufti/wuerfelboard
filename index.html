@@ -1255,6 +1255,44 @@
         page3.appendChild(b); 
     }
 
+    /* --- LIVE UHRZEIT & AKKUSTAND --- */
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeElem = document.getElementById('time-display');
+        if (timeElem) {
+            timeElem.innerText = `${hours}:${minutes}`;
+        }
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    async function updateBattery() {
+        const battElem = document.getElementById('battery-display');
+        if (!battElem) return;
+
+        if ('getBattery' in navigator) {
+            try {
+                const battery = await navigator.getBattery();
+                const updateLevel = () => {
+                    const level = Math.round(battery.level * 100);
+                    const charging = battery.charging ? '⚡ ' : '🔋 ';
+                    battElem.innerText = `${charging}${level}%`;
+                };
+                
+                updateLevel();
+                battery.addEventListener('levelchange', updateLevel);
+                battery.addEventListener('chargingchange', updateLevel);
+            } catch (e) {
+                battElem.innerText = '🔋 --%';
+            }
+        } else {
+            battElem.style.display = 'none';
+        }
+    }
+    updateBattery();
+
     render();
 </script>
 </body>
