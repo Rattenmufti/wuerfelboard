@@ -419,7 +419,7 @@
         <div class="quick-pad" id="padUI">
             <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
                 <div class="pad-page" id="padPage1">
-                    <button class="pad-btn btn-ronny" onclick="playPadSound(); setV(0)">0 (Ronny)</button>
+                    <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
                 </div>
                 <div class="pad-page" id="padPage2"></div>
                 <div class="pad-page" id="padPage3"></div>
@@ -500,11 +500,11 @@
     let playedWinnerSound = Array(MAX_P).fill(false);
 
     const AVAILABLE_EMOJIS = [
-        "🐎", "🦄", "🏎️", "🏍️", "🚀", "🛸", "🏃", "🏃‍♀️", "🦖", "🐖", 
+        "🐎", "🦄", "🏎️", "🏍️", "🚀", "🛸", "🏃", "🏃‍♀️", "REX", "🐖", 
         "🐐", "🐈", "🐕", "🦈", "🦼", "🪠", "🍞", "🍕", "🍺", "💩", "👑"
     ];
     
-    const DEFAULT_RIGHT_FACING = ["🐎", "🦄", "🏎️", "🏍️", "🏃", "🏃‍♀️", "🦖", "🐖", "🐐", "🐈", "🐕", "🦈", "🦼", "💩"];
+    const DEFAULT_RIGHT_FACING = ["🐎", "🦄", "🏎️", "🏍️", "🏃", "🏃‍♀️", "REX", "🐖", "🐐", "🐈", "🐕", "🦈", "🦼", "💩"];
 
     function updatePadDots() {
         const vp = document.getElementById('padViewport');
@@ -515,16 +515,17 @@
         document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
     }
 
-    function playPadSound() {
+    // Audio-Objekte einmal zentral verwalten
+    const audioCache = {};
+
+    function playCustomAudio(filename) {
         try {
-            const audio = new Audio('punkte.mp3');
-            audio.play()
-                .then(() => {
-                    audio.pause();
-                })
-                .catch(e => {
-                    playOscillatorFallback();
-                });
+            if (!audioCache[filename]) {
+                audioCache[filename] = new Audio(filename);
+            }
+            const audio = audioCache[filename];
+            audio.currentTime = 0;
+            audio.play().catch(e => playOscillatorFallback());
         } catch(e) {
             playOscillatorFallback();
         }
@@ -543,13 +544,6 @@
             gain.connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + 0.05);
-        } catch(e) {}
-    }
-
-    function playCustomAudio(filename) {
-        try {
-            const audio = new Audio(filename);
-            audio.play().catch(e => console.log("Audio-Wiedergabe blockiert oder Datei fehlt:", filename));
         } catch(e) {}
     }
 
@@ -718,13 +712,7 @@
         buttons.forEach(b => b.disabled = true);
         
         const soundFile = (v === 0) ? 'und-weg.mp3' : 'punkte.mp3';
-        const audio = new Audio(soundFile);
-        
-        audio.play()
-            .then(() => { })
-            .catch(e => {
-                if (v === 0) playOscillatorFallback();
-            });
+        playCustomAudio(soundFile);
 
         scores[focus.r][focus.pI] = v.toString(); 
         isQuickPress = true;
@@ -1237,7 +1225,7 @@
         const b = document.createElement('button'); 
         b.className='pad-btn'; 
         b.innerText=v; 
-        b.onclick=()=> { playPadSound(); setV(v); }; 
+        b.onclick=()=> { setV(v); }; 
         page1.appendChild(b); 
     }
 
@@ -1246,7 +1234,7 @@
         const b = document.createElement('button'); 
         b.className='pad-btn'; 
         b.innerText=v; 
-        b.onclick=()=> { playPadSound(); setV(v); }; 
+        b.onclick=()=> { setV(v); }; 
         page2.appendChild(b); 
     }
 
@@ -1255,7 +1243,7 @@
         const b = document.createElement('button'); 
         b.className='pad-btn'; 
         b.innerText=v; 
-        b.onclick=()=> { playPadSound(); setV(v); }; 
+        b.onclick=()=> { setV(v); }; 
         page3.appendChild(b); 
     }
 
