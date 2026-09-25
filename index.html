@@ -204,15 +204,17 @@
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
         
-        /* DESKTOP MODUS ANPASSUNG FÜR UHR & AKKU IN DER ÜBERSCHRIFT-ZEILE */
+        /* DESKTOP MODUS: Akku- & Uhranzeige mittig in der Zeile */
         body:not(.mobile-mode) .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            width: 100%;
+            position: relative;
         }
         body:not(.mobile-mode) .header-status {
-            position: static;
-            transform: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 0.95rem;
             font-weight: bold;
             gap: 10px;
@@ -221,6 +223,40 @@
             padding: 3px 10px;
             border-radius: 8px;
             border: 1px solid var(--border);
+        }
+
+        /* MOBILE ANSICHTEN: Akku- & Uhranzeige auf der rechten Seite */
+        body.mobile-mode .header-left {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        body.mobile-mode .header-status {
+            position: static;
+            transform: none;
+            margin-left: auto;
+            font-size: 0.9rem;
+            font-weight: bold;
+            gap: 8px;
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* MOBILE LANDSCAPE: Begrenzung vor der Pad-Reihen-Breite gegen Überlappung */
+        @media (orientation: landscape) {
+            body.mobile-mode.few-players .header-left {
+                max-width: calc(100vw - 280px);
+                padding-right: 10px;
+            }
+            body.mobile-mode.many-players .header-left {
+                max-width: calc(100vw - 185px);
+                padding-right: 10px;
+            }
         }
 
         .btn-top { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
