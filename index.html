@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     
-    <title>Würfelboard v0.99.1 Stable</title>
+    <title>Würfelboard v0.99 Stable</title>
     <style>
         :root {
             --primary: #2c3e50; --accent: #e67e22; --win: #27ae60; --ronny: #e74c3c;
@@ -277,7 +277,6 @@
 
         .stats-section { background: var(--table-head); color: white; padding: 8px; border-radius: 10px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; flex-shrink: 0; }
         .stat-item { border-right: 1px solid #444; display: flex; flex-direction: column; }
-        .stat-item:last-child { border-right: none; }
         .stat-name { font-size: 0.6rem; color: #888; }
         .stat-wins { font-size: 0.9rem; font-weight: bold; color: #f1c40f; }
         .stat-wins .pending-win { color: #27ae60; font-weight: bold; animation: blinker 1s linear infinite; margin-left: 2px; }
@@ -360,7 +359,7 @@
         .score-mobile-name { display: none; }
         
         @keyframes blinker {
-            50% { opacity: 0.4; }
+            50% { opacity: 0; }
         }
 
         @keyframes nearWinBlinker {
@@ -403,698 +402,1091 @@
 
         #histView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
         .history-item { background:#333; padding:8px 12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:white; font-size: 0.85rem; border-left: 4px solid var(--accent); }
-        .btn-load-hist { background:var(--win); border:none; color:white; padding:6px 10px; border-radius:4px; cursor:pointer; font-weight:bold; }
+        .btn-load-hist { background:var(--win); border:none; color:white; padding:6px 10px; border-radius:4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
 
-        /* MODAL POPUP FIXES */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: var(--modal-backdrop);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
+        .emoji-picker-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); z-index: 2500;
+            display: none; justify-content: center; align-items: center; box-sizing: border-box;
+            padding: 15px;
         }
+        .emoji-picker-content {
+            background: var(--card-bg); border: 2px solid var(--accent); border-radius: 12px;
+            padding: 15px; max-width: 320px; width: 100%; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .emoji-picker-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px;
+        }
+        .emoji-select-btn {
+            font-size: 1.8rem; background: rgba(0,0,0,0.15); border: 1px solid var(--border);
+            border-radius: 8px; cursor: pointer; padding: 5px 0; transition: transform 0.1s, background 0.1s;
+        }
+        .emoji-select-btn:hover { background: var(--accent); transform: scale(1.1); }
 
-        .modal-content {
-            background: var(--card-bg);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            padding: 16px;
-            width: 90%;
-            max-width: 480px;
-            max-height: 85vh;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-sizing: border-box;
-            color: var(--text);
-            position: relative;
+        .custom-modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--modal-backdrop); z-index: 4000;
+            display: none; justify-content: center; align-items: center; box-sizing: border-box;
+            padding: 20px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
+        .custom-modal-content {
+            background: var(--card-bg); border: 3px solid var(--accent); border-radius: 16px;
+            padding: 20px; max-width: 420px; width: 100%; text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            color: var(--text); box-sizing: border-box;
+            animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .custom-modal-title { margin: 0 0 12px 0; color: var(--accent); font-size: 1.3rem; font-weight: bold; }
+        .custom-modal-text { font-size: 1rem; line-height: 1.4; margin-bottom: 20px; white-space: pre-line; text-align: center; }
+        .custom-modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { flex: 1; border: none; padding: 12px 0; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; color: white; }
+        .modal-btn-yes { background: var(--win); }
+        .modal-btn-no { background: var(--ronny); }
+        .modal-btn-ok { background: var(--primary); }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--accent);
-        }
-
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 1.2rem;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .modal-body {
-            overflow-y: auto;
-            flex: 1;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        .changelog-version {
-            font-weight: bold;
-            color: var(--accent);
-            margin-top: 10px;
-            margin-bottom: 4px;
-            border-bottom: 1px dashed var(--border);
-            padding-bottom: 2px;
-        }
-
-        .changelog-list {
-            margin: 0;
-            padding-left: 18px;
-        }
-
-        .changelog-list li {
-            margin-bottom: 4px;
-        }
+        /* CHANGELOG STYLE */
+        .changelog-list { text-align: left; margin: 15px 0; padding-left: 20px; font-size: 0.9rem; line-height: 1.5; }
+        .changelog-list li { margin-bottom: 6px; }
+        .dont-show-again { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; margin-top: 15px; cursor: pointer; color: #ccc; }
+        .dont-show-again input { cursor: pointer; width: 16px; height: 16px; }
     </style>
 </head>
-<body>
+<body id="mainBody">
+
+<div id="raceTrackStickyCopy" class="race-track-sticky-overlay"></div>
+
+<div id="customModal" class="custom-modal-backdrop">
+    <div class="custom-modal-content">
+        <div id="customModalTitle" class="custom-modal-title">Meldung</div>
+        <div id="customModalText" class="custom-modal-text">Inhalt der Meldung...</div>
+        <div id="customModalButtons" class="custom-modal-buttons"></div>
+    </div>
+</div>
+
+<div id="changelogModal" class="custom-modal-backdrop">
+    <div class="custom-modal-content" style="max-width: 450px;">
+        <div class="custom-modal-title">Was ist neu in v1.00? 🚀</div>
+        <ul class="changelog-list">
+            <li>Blinken angepasst (Element wird beim Blinken nun vollständig unsichtbar)</li>
+            <li>Akkuanzeige hinzugefügt (nur Android)</li>
+            <li>Uhrzeit hinzugefügt (nur Android)</li>
+            <li>Menü neu strukturiert</li>
+            <li>„Rückgängig“-Pfeil eingefügt (max. 3 Schritte)</li>
+            <li>Automatischer Wechsel des Zahlenpads von Seite 2 und 3 zu Seite 1 bei Betätigung</li>
+            <li>Fehler beim Zählen von Siegen bei Unentschieden behoben</li>
+            <li>Fehler bei Tönen behoben (stellenweise doppelte Ausgabe)</li>
+        </ul>
+        <label class="dont-show-again">
+            <input type="checkbox" id="chkHideChangelog">
+            <span>Nicht mehr anzeigen</span>
+        </label>
+        <div class="custom-modal-buttons" style="margin-top: 15px;">
+            <button class="modal-btn modal-btn-ok" onclick="closeChangelogModal()">Verstanden</button>
+        </div>
+    </div>
+</div>
+
+<div id="emojiPicker" class="emoji-picker-modal" onclick="closeEmojiPicker(event)">
+    <div class="emoji-picker-content" onclick="event.stopPropagation()">
+        <h3 id="emojiPickerTitle" style="margin: 0 0 5px 0; color: var(--accent); font-size: 1.1rem;">Gefährt wählen</h3>
+        <div style="font-size: 0.8rem; color: #aaa;">Wähle dein Symbol für die Rennbahn</div>
+        <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
+        <button class="btn-top" style="background: var(--ronny); margin-top: 15px; width: 100%; padding: 8px 0;" onclick="document.getElementById('emojiPicker').style.display='none'">Abbrechen</button>
+    </div>
+</div>
 
 <div class="app">
+    <div id="arcBanner" style="display:none; background:var(--accent); color:white; padding:10px; text-align:center; font-weight:bold; position:fixed; top:0; width:100%; z-index:2000;" onclick="exitArchive()">⚠️ ARCHIV ANSICHT (ZUM VERLASSEN KLICKEN)</div>
+
     <div class="header-bar">
         <div class="header-left">
+            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.99 Stable</h2>
+            <div id="status-bar" class="header-status">
+                <span id="time-display">13:52</span>
+                <span id="battery-display">🔋 67%</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
             <div class="btn-group">
-                <button class="btn-top" onclick="toggleSetup()">👥 Spieler</button>
-                <button class="btn-top" onclick="toggleAnalysis()">📊 Stats</button>
-                <button class="btn-top" onclick="toggleRaceTrack()">🏁 Bahn</button>
+                <button class="btn-top" onclick="saveCSV()">💾 BACKUP</button>
+                <button class="btn-top" onclick="document.getElementById('csvIn').click()">📂 LADEN</button>
             </div>
-            <div class="header-status">
-                <span id="currentRoundDisplay">Runde 1</span> | 
-                <span id="turnDisplay">An der Reihe: -</span>
+            <div class="btn-group">
+                <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
+                <button id="btnViewToggle" class="btn-top" onclick="toggleMobile()">📱 MOBIL</button>
+                <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🐎 RENNEN</button>
+                <button class="btn-top" onclick="toggleTheme()">🌓 MODE</button>
             </div>
-        </div>
-        <div class="btn-group">
-            <button class="btn-top" onclick="toggleMobileMode()" id="btnMobile">📱 Mobil</button>
-            <button class="btn-top" onclick="toggleTheme()">🌓 Theme</button>
-            <button class="btn-top" onclick="showHistory()">📜 Historie</button>
-            <button class="btn-top" onclick="openChangelog()">ℹ️ Info</button>
-            <button class="btn-top" style="background:var(--win)" onclick="finishGame()">🏆 Ende</button>
-            <button class="btn-top" style="background:#c0392b" onclick="resetAll()">🔄 Reset</button>
+            <div class="btn-group">
+                <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
+                <button class="btn-top" onclick="finishCheck()" style="background:var(--win)">✨ NEU</button>
+                <button class="btn-top" onclick="askMasterReset()" style="background:#555">🔄 RESET</button>
+            </div>
         </div>
     </div>
 
-    <div id="statsSection" class="stats-section"></div>
-
-    <div id="setupSection" class="setup-section" style="display:none;">
-        <div id="namesGrid" class="names-grid"></div>
-    </div>
-
-    <div id="raceTrack" class="race-track-container"></div>
+    <div class="stats-section" id="statsDisp"></div>
+    <div class="setup-section" id="setupArea"><div class="names-grid" id="namesGrid"></div></div>
+    
+    <div id="raceTrackUI" class="race-track-container"></div>
+    <div id="analysisUI" class="analysis-grid"></div>
 
     <div class="game-container">
-        <div class="table-area" id="tableArea">
-            <table id="scoreTable">
-                <thead>
-                    <tr id="tableHeader"></tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-                <tfoot>
-                    <tr id="tableFooter"></tr>
-                </tfoot>
+        <div class="table-area">
+            <table>
+                <thead><tr id="hRow"></tr></thead>
+                <tbody id="gBody"></tbody>
+                <tfoot><tr id="tRow"></tr></tfoot>
             </table>
         </div>
-
-        <div class="quick-pad" id="quickPad">
-            <div class="pad-viewport" id="padViewport">
-                <!-- Dynamisch generiert -->
+        <div class="quick-pad" id="padUI">
+            <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
+                <div class="pad-page" id="padPage1">
+                    <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
+                    <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
+                </div>
+                <div class="pad-page" id="padPage2"></div>
+                <div class="pad-page" id="padPage3"></div>
             </div>
-            <div class="pad-dots" id="padDots"></div>
+            <div class="pad-dots">
+                <div class="pad-dot active" id="dot1"></div>
+                <div class="pad-dot" id="dot2"></div>
+                <div class="pad-dot" id="dot3"></div>
+            </div>
         </div>
     </div>
-
-    <div id="analysisGrid" class="analysis-grid slide-hide"></div>
 </div>
-
-<div id="raceTrackOverlay" class="race-track-sticky-overlay"></div>
 
 <div id="histView">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h2 style="color:white; margin:0;">Gespeicherte Spiele</h2>
-        <button class="btn-top" onclick="hideHistory()">❌ Schließen</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 0 5px;">
+        <h2 style="color:white; margin:0; font-size: 1.2rem;">Historie</h2>
+        <button class="btn-top" onclick="document.getElementById('histView').style.display='none'" style="background:var(--ronny); padding: 5px 15px;">X</button>
     </div>
-    <div id="histList"></div>
+    <div id="arcList"></div>
 </div>
 
-<div id="changelogModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Changelog - Würfelboard</h3>
-            <button class="modal-close" onclick="closeChangelog()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="changelog-version">v0.99.1 Stable</div>
-            <ul class="changelog-list">
-                <li>Vollständige Code-Synthese und Struktur-Wiederherstellung.</li>
-                <li>Changelog-Historie gepflegt.</li>
-            </ul>
-            <div class="changelog-version">v0.99 Stable</div>
-            <ul class="changelog-list">
-                <li>Mobile-Optimierungen für Hoch- und Querformat.</li>
-                <li>Fixierte Rennbahn-Overlay-Funktion implementiert.</li>
-                <li>Optimierte Touchpad-Layouts und Quick-Pads.</li>
-                <li>Dynamische Scoreboard-Anpassungen für wechselnde Spielanzahl.</li>
-            </ul>
-        </div>
-    </div>
-</div>
+<input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
 
 <script>
-    const MAX_PLAYERS = 8;
-    const TOTAL_ROUNDS = 15;
-    const GOAL_SCORE = 300;
+    const APP_VERSION = "1.00";
 
-    let players = JSON.parse(localStorage.getItem('wb_players')) || [
-        { name: 'Spieler 1', wins: 0, active: true },
-        { name: 'Spieler 2', wins: 0, active: true },
-        { name: 'Spieler 3', wins: 0, active: false },
-        { name: 'Spieler 4', wins: 0, active: false },
-        { name: 'Spieler 5', wins: 0, active: false },
-        { name: 'Spieler 6', wins: 0, active: false },
-        { name: 'Spieler 7', wins: 0, active: false },
-        { name: 'Spieler 8', wins: 0, active: false }
-    ];
-
-    let starterIndex = parseInt(localStorage.getItem('wb_starter')) || 0;
-    let scores = JSON.parse(localStorage.getItem('wb_scores')) || Array(TOTAL_ROUNDS).fill(null).map(() => Array(MAX_PLAYERS).fill(''));
-    let activeCell = { r: 0, c: 0 };
-    let isMobile = localStorage.getItem('wb_mobile') === 'true';
-    let isLight = localStorage.getItem('wb_light') === 'true';
-    let raceTrackVisible = false;
-
-    function init() {
-        if (isLight) document.body.classList.add('light-mode');
-        if (isMobile) document.body.classList.add('mobile-mode');
-        
-        renderStats();
-        renderSetup();
-        renderTable();
-        renderPad();
-        renderRaceTrack();
-        
-        updateFocus();
-        updateLandscapePlayerCountClass();
-
-        const tableArea = document.getElementById('tableArea');
-        if (tableArea) {
-            tableArea.addEventListener('scroll', handleTableScroll);
+    function checkChangelog() {
+        const hideVersion = localStorage.getItem('10k_hide_changelog');
+        if (hideVersion !== APP_VERSION) {
+            document.getElementById('changelogModal').style.display = 'flex';
         }
     }
 
-    function saveState() {
-        localStorage.setItem('wb_players', JSON.stringify(players));
-        localStorage.setItem('wb_starter', starterIndex);
-        localStorage.setItem('wb_scores', JSON.stringify(scores));
-        localStorage.setItem('wb_mobile', isMobile);
-        localStorage.setItem('wb_light', isLight);
+    function closeChangelogModal() {
+        const isChecked = document.getElementById('chkHideChangelog').checked;
+        if (isChecked) {
+            localStorage.setItem('10k_hide_changelog', APP_VERSION);
+        } else {
+            localStorage.removeItem('10k_hide_changelog');
+        }
+        document.getElementById('changelogModal').style.display = 'none';
     }
 
-    function getActivePlayers() {
-        return players.map((p, i) => ({ ...p, originalIndex: i })).filter(p => p.active);
+    function openAlert(title, text) {
+        document.getElementById('customModalTitle').innerText = title;
+        document.getElementById('customModalText').innerText = text;
+        const btnArea = document.getElementById('customModalButtons');
+        btnArea.innerHTML = '';
+        
+        const btn = document.createElement('button');
+        btn.className = 'modal-btn modal-btn-ok';
+        btn.innerText = 'OK';
+        btn.onclick = () => { document.getElementById('customModal').style.display = 'none'; };
+        
+        btnArea.appendChild(btn);
+        document.getElementById('customModal').style.display = 'flex';
     }
 
-    function updateLandscapePlayerCountClass() {
-        const activeCount = getActivePlayers().length;
-        if (activeCount <= 4) {
+    function openConfirm(title, text, onYes, onNo = null) {
+        document.getElementById('customModalTitle').innerText = title;
+        document.getElementById('customModalText').innerText = text;
+        const btnArea = document.getElementById('customModalButtons');
+        btnArea.innerHTML = '';
+        
+        const btnYes = document.createElement('button');
+        btnYes.className = 'modal-btn modal-btn-yes';
+        btnYes.innerText = 'Ja';
+        btnYes.onclick = () => { document.getElementById('customModal').style.display = 'none'; onYes(); };
+        
+        const btnNo = document.createElement('button');
+        btnNo.className = 'modal-btn modal-btn-no';
+        btnNo.innerText = 'Abbrechen';
+        btnNo.onclick = () => { document.getElementById('customModal').style.display = 'none'; if(onNo) onNo(); };
+        
+        btnArea.appendChild(btnYes);
+        btnArea.appendChild(btnNo);
+        document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                openAlert('Vollbild', `Fehler beim Aktivieren des Vollbildmodus: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    const MAX_P = 8;
+    let isArcView = false, arcScores = [], arcNames = [], isQuickPress = false, isLocked = false;
+    let focus = { r: 0, pI: 0, apIdx: 0 }; 
+    let currentPickerPlayerIdx = null; 
+    let undoHistory = [];
+    let autoPageReturnTimer = null;
+    
+    let playedUnder1000 = Array(MAX_P).fill(false);
+    let playedWinnerSound = Array(MAX_P).fill(false);
+
+    const AVAILABLE_EMOJIS = [
+        "🐎", "🦄", "🏎️", "🏍️", "🚀", "🛸", "🏃", "🏃‍♀️", "REX", "🐖", 
+        "🐐", "🐈", "🐕", "🦈", "🦼", "🪠", "🍞", "🍕", "🍺", "💩", "👑"
+    ];
+    
+    const DEFAULT_RIGHT_FACING = ["🐎", "🦄", "🏎️", "🏍️", "🏃", "🏃‍♀️", "REX", "🐖", "🐐", "🐈", "🐕", "🦈", "🦼", "💩"];
+
+    function updatePadDots() {
+        const vp = document.getElementById('padViewport');
+        if (!vp) return;
+        const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+        document.getElementById('dot1').classList.toggle('active', pageIdx === 0);
+        document.getElementById('dot2').classList.toggle('active', pageIdx === 1);
+        document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
+    }
+
+    const audioCache = {};
+
+    function playCustomAudio(filename) {
+        try {
+            if (!audioCache[filename]) {
+                audioCache[filename] = new Audio(filename);
+            }
+            const audio = audioCache[filename];
+            audio.currentTime = 0;
+            audio.play().catch(e => playOscillatorFallback());
+        } catch(e) {
+            playOscillatorFallback();
+        }
+    }
+
+    function playOscillatorFallback() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        } catch(e) {}
+    }
+
+    function getSafe(k, f) { try { let d = localStorage.getItem(k); return d ? JSON.parse(d) : f; } catch(e) { return f; } }
+
+    let pNames = getSafe('10k_names', ["Spieler 1", "Spieler 2", "", "", "", "", "", ""]);
+    let scores = getSafe('10k_scores', [Array(MAX_P).fill("")]);
+    let stats = Array(MAX_P).fill(0); 
+    let archive = getSafe('10k_archive', []);
+    let startIdx = getSafe('10k_startIdx', 0);
+    let theme = getSafe('10k_theme', 'dark');
+    let showRace = getSafe('10k_showRace', false);
+    
+    let pEmojis = getSafe('10k_emojis', Array(MAX_P).fill("🐎"));
+    
+    let defaultView = window.innerWidth < 1024 ? 'mobile' : 'desktop';
+    let viewMode = getSafe('10k_viewMode', defaultView);
+
+    if(theme === 'light') document.body.classList.add('light-mode');
+    if(viewMode === 'mobile') document.body.classList.add('mobile-mode');
+    updateToggleButtonText();
+
+    function sanitizeOldNames(text) {
+        if (!text) return "";
+        return text.replace(/\bAggi\b/gi, pNames[0] || "Spieler 1")
+                   .replace(/\bDavid\b/gi, pNames[1] || "Spieler 2");
+    }
+
+    function recalculateKingOfTheHill() {
+        stats = Array(MAX_P).fill(0);
+        
+        archive.forEach(g => {
+            let winText = g.w ? g.w.trim().toLowerCase() : "";
+            if (winText === "") return;
+
+            if (winText.startsWith("unentschieden:")) {
+                let winnersList = g.w.replace(/Unentschieden:\s*/i, "").split(",");
+                winnersList.forEach(wName => {
+                    let sName = wName.trim().toLowerCase();
+                    let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
+                    if (pIdx !== -1) { stats[pIdx]++; }
+                });
+                return;
+            }
+            
+            if (winText.includes("aggi") || winText.includes("spieler 1")) {
+                stats[0]++;
+                return;
+            }
+            if (winText.includes("david") || winText.includes("spieler 2")) {
+                stats[1]++;
+                return;
+            }
+            
+            if (winText.startsWith("sieger: ")) {
+                let sName = g.w.replace(/Sieger:\s*/i, "").trim().toLowerCase();
+                let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
+                if (pIdx !== -1) { stats[pIdx]++; return; }
+            }
+
+            if (g.s && Array.isArray(g.s)) {
+                let slotTotals = Array(MAX_P).fill(0);
+                g.s.forEach(row => {
+                    for (let i = 0; i < MAX_P; i++) {
+                        let val = parseInt(row[i]);
+                        if (!isNaN(val)) slotTotals[i] += val;
+                    }
+                });
+
+                let maxScore = Math.max(...slotTotals);
+                if (maxScore >= 10000) {
+                    for (let i = 0; i < MAX_P; i++) {
+                        if (slotTotals[i] === maxScore) {
+                            stats[i]++;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); } }
+    
+    function toggleMobile() { 
+        viewMode = (viewMode === 'desktop' ? 'mobile' : 'desktop'); 
+        document.body.classList.toggle('mobile-mode'); 
+        updateToggleButtonText();
+        save(); 
+        render(); 
+    }
+
+    function toggleRaceMode() {
+        showRace = !showRace;
+        save();
+        applyRaceVisibility();
+    }
+
+    function applyRaceVisibility() {
+        const raceUI = document.getElementById('raceTrackUI');
+        const anaUI = document.getElementById('analysisUI');
+        const btn = document.getElementById('btnRaceToggle');
+        
+        if (showRace) {
+            if(anaUI) anaUI.classList.add('slide-hide');
+            if(raceUI) {
+                raceUI.classList.add('slide-show');
+                setupRaceTrackStructure();
+                renderRaceTrack();
+            }
+            if(btn) {
+                btn.style.background = '#2ecc71';
+                btn.innerText = '📊 STATISTIK';
+            }
+        } else {
+            if(raceUI) raceUI.classList.remove('slide-show');
+            if(anaUI) anaUI.classList.remove('slide-hide');
+            document.getElementById('raceTrackStickyCopy').style.display = 'none';
+            if(btn) {
+                btn.style.background = '#8e44ad';
+                btn.innerText = '🐎 RENNEN';
+            }
+        }
+    }
+
+    function updateToggleButtonText() {
+        const btn = document.getElementById('btnViewToggle');
+        if(btn) btn.innerText = viewMode === 'mobile' ? '📱 DESKTOP' : '📱 MOBIL';
+    }
+
+    function toggleTheme() { theme = (theme === 'dark' ? 'light' : 'dark'); document.body.classList.toggle('light-mode'); save(); }
+
+    function scrollCheck(el) {
+        if(viewMode !== 'mobile') { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+        const pad = document.getElementById('padUI');
+        const padTop = pad.getBoundingClientRect().top;
+        const elRect = el.getBoundingClientRect();
+        
+        if (elRect.bottom > padTop - 110) { 
+            window.scrollBy({ top: elRect.bottom - padTop + 240, behavior: 'smooth' }); 
+        } else if (elRect.top < 100) { 
+            window.scrollBy({ top: elRect.top - 120, behavior: 'smooth' }); 
+        }
+
+        const tableArea = document.querySelector('.table-area');
+        if (tableArea) {
+            const stickyOffset = 78;
+            const targetBottom = el.offsetTop + el.offsetHeight + stickyOffset;
+            
+            if (targetBottom > tableArea.scrollTop + tableArea.clientHeight) {
+                tableArea.scrollTo({
+                    top: targetBottom - tableArea.clientHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+
+    function setV(v) { 
+        if(isArcView || isLocked) return; 
+        if (focus.pI === undefined || focus.r === undefined) {
+            const sorted = getSortedActive();
+            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
+        }
+        isLocked = true;
+        const buttons = document.querySelectorAll('.pad-btn');
+        buttons.forEach(b => b.disabled = true);
+        
+        undoHistory.push({
+            scores: JSON.parse(JSON.stringify(scores)),
+            focus: { ...focus }
+        });
+        if (undoHistory.length > 3) {
+            undoHistory.shift();
+        }
+
+        const soundFile = (v === 0) ? 'und-weg.mp3' : 'punkte.mp3';
+        playCustomAudio(soundFile);
+
+        scores[focus.r][focus.pI] = v.toString(); 
+        isQuickPress = true;
+        render(); 
+
+        const vp = document.getElementById('padViewport');
+        if (vp) {
+            const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+            if (pageIdx > 0) {
+                if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
+                autoPageReturnTimer = setTimeout(() => {
+                    vp.scrollTo({ left: 0, behavior: 'smooth' });
+                }, 1000);
+            }
+        }
+
+        setTimeout(() => { 
+            jumpToNext(); 
+            isLocked = false; 
+            buttons.forEach(b => b.disabled = false); 
+        }, 500);
+    }
+
+    function undoMove() {
+        if (isArcView || isLocked || undoHistory.length === 0) return;
+        isLocked = true;
+        const buttons = document.querySelectorAll('.pad-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const lastState = undoHistory.pop();
+        scores = JSON.parse(JSON.stringify(lastState.scores));
+        focus = { ...lastState.focus };
+        
+        save();
+        render();
+
+        setTimeout(() => {
+            const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
+            if (el) {
+                el.focus();
+                scrollCheck(el);
+            }
+            isLocked = false;
+            buttons.forEach(b => b.disabled = false);
+        }, 500);
+    }
+
+    function jumpToNext() {
+        const sorted = getSortedActive();
+        if (sorted.length === 0) return;
+        let nAp = focus.apIdx + 1, nR = focus.r;
+        if(nAp >= sorted.length) { nAp = 0; nR++; if(nR >= scores.length) scores.push(Array(MAX_P).fill("")); }
+        focus = { r: nR, pI: sorted[nAp].i, apIdx: nAp };
+        save(); render(); 
+        setTimeout(() => {
+            const el = document.getElementById(`input-${nR}-${sorted[nAp].i}`);
+            if(el) {
+                if(isQuickPress) { el.setAttribute('readonly', 'true'); el.focus(); setTimeout(() => el.removeAttribute('readonly'), 50); } 
+                else { el.focus(); }
+                scrollCheck(el);
+            }
+            isQuickPress = false; 
+        }, 30);
+    }
+
+    function updateName(idx, val) {
+        pNames[idx] = val;
+        recalculateKingOfTheHill();
+        save();
+        updateUI(getSortedActive());
+        const hCells = document.getElementById('hRow').querySelectorAll('th');
+        const sorted = getSortedActive();
+        sorted.forEach((p, i) => {
+            if(hCells[i+1]) hCells[i+1].innerText = getHeaderNameWithAvg(p);
+        });
+        setupRaceTrackStructure();
+        renderRaceTrack();
+    }
+
+    function getHeaderNameWithAvg(p) {
+        const activeScores = isArcView ? arcScores : scores;
+        let sum = 0, count = 0;
+        activeScores.forEach(r => {
+            const v = parseInt(r[p.i]);
+            if(!isNaN(v)) { sum += v; count++; }
+        });
+        let avg = count > 0 ? Math.round(sum / count) : 0;
+        return `${p.n} (Ø:${avg})`;
+    }
+
+    function changeStarter(i) {
+        if (isArcView) return;
+        startIdx = i;
+        const sorted = getSortedActive();
+        const newApIdx = sorted.findIndex(p => p.i === i);
+        focus = {
+            r: 0,
+            pI: i,
+            apIdx: (newApIdx === -1 ? 0 : newApIdx)
+        };
+        save();
+        render();
+    }
+
+    function openEmojiPicker(playerIdx, playerName) {
+        if (isArcView) return;
+        currentPickerPlayerIdx = playerIdx;
+        document.getElementById('emojiPickerTitle').innerText = `${playerName}`;
+        
+        const grid = document.getElementById('emojiPickerGrid');
+        grid.innerHTML = '';
+        
+        AVAILABLE_EMOJIS.forEach(emo => {
+            const btn = document.createElement('button');
+            btn.className = 'emoji-select-btn';
+            btn.innerText = emo;
+            btn.onclick = () => selectEmojiForPlayer(emo);
+            grid.appendChild(btn);
+        });
+        
+        document.getElementById('emojiPicker').style.display = 'flex';
+    }
+
+    function selectEmojiForPlayer(emo) {
+        if (currentPickerPlayerIdx !== null) {
+            pEmojis[currentPickerPlayerIdx] = emo;
+            save();
+            document.getElementById('emojiPicker').style.display = 'none';
+            document.getElementById('raceTrackUI').removeAttribute('data-layout-id');
+            setupRaceTrackStructure();
+            renderRaceTrack();
+        }
+    }
+
+    function closeEmojiPicker(e) {
+        document.getElementById('emojiPicker').style.display = 'none';
+    }
+
+    function render() {
+        recalculateKingOfTheHill();
+        const activeScores = isArcView ? arcScores : scores;
+        const activeNames = isArcView ? arcNames : pNames;
+        const sorted = getSortedActive();
+        
+        if (sorted.length <= 4) {
             document.body.classList.add('few-players');
             document.body.classList.remove('many-players');
         } else {
             document.body.classList.add('many-players');
             document.body.classList.remove('few-players');
         }
-    }
-
-    function renderStats() {
-        const statsEl = document.getElementById('statsSection');
-        statsEl.innerHTML = players.map((p, i) => {
-            if (!p.active) return `<div class="stat-item" style="opacity:0.3;"><span class="stat-name">${p.name}</span><span class="stat-wins">-</span></div>`;
-            
-            const totalScore = calculateTotal(i);
-            const isPendingWin = totalScore >= GOAL_SCORE;
-            
-            return `
-                <div class="stat-item">
-                    <span class="stat-name">${p.name}</span>
-                    <span class="stat-wins">
-                        ${p.wins}
-                        ${isPendingWin ? '<span class="pending-win">🏆</span>' : ''}
-                    </span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function renderSetup() {
-        const grid = document.getElementById('namesGrid');
-        grid.innerHTML = players.map((p, i) => `
-            <div class="name-slot">
-                <input type="text" value="${p.name}" onchange="updateName(${i}, this.value)">
-                <div style="display:flex; gap:4px; align-items:center;">
-                    <label style="font-size:0.65rem; display:flex; align-items:center; gap:2px; cursor:pointer;">
-                        <input type="checkbox" ${p.active ? 'checked' : ''} onchange="togglePlayerActive(${i})"> Aktiv
-                    </label>
-                    <button class="btn-starter ${starterIndex === i ? 'active' : ''}" onclick="setStarter(${i})">
-                        ${starterIndex === i ? '★ Start' : 'Start'}
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function togglePlayerActive(i) {
-        players[i].active = !players[i].active;
-        if (!players[starterIndex].active) {
-            const firstActive = players.findIndex(p => p.active);
-            starterIndex = firstActive !== -1 ? firstActive : 0;
-        }
-        saveState();
-        renderStats();
-        renderSetup();
-        renderTable();
-        renderPad();
-        renderRaceTrack();
-        updateLandscapePlayerCountClass();
-    }
-
-    function setStarter(i) {
-        if (!players[i].active) return;
-        starterIndex = i;
-        saveState();
-        renderSetup();
-        updateFocus();
-    }
-
-    function updateName(i, name) {
-        players[i].name = name || `Spieler ${i+1}`;
-        saveState();
-        renderStats();
-        renderTable();
-        renderRaceTrack();
-    }
-
-    function renderTable() {
-        const header = document.getElementById('tableHeader');
-        const body = document.getElementById('tableBody');
-        const footer = document.getElementById('tableFooter');
-
-        const activePlayers = getActivePlayers();
-
-        header.innerHTML = '<th>Runde</th>' + activePlayers.map(p => `<th>${p.name}</th>`).join('');
-
-        body.innerHTML = '';
-        for (let r = 0; r < TOTAL_ROUNDS; r++) {
-            const tr = document.createElement('tr');
-            let html = `<td style="font-size:0.75rem; font-weight:bold; background:rgba(0,0,0,0.1);">${r + 1}</td>`;
-            
-            activePlayers.forEach((p) => {
-                const c = p.originalIndex;
-                const val = scores[r][c];
-                html += `
-                    <td>
-                        <input type="text" readonly class="score-input" id="cell-${r}-${c}" value="${val}" onclick="selectCell(${r}, ${c})">
-                    </td>
-                `;
-            });
-            tr.innerHTML = html;
-            body.appendChild(tr);
-        }
-
-        footer.innerHTML = '<td>Gesamt</td>' + activePlayers.map(p => {
-            const c = p.originalIndex;
-            const total = calculateTotal(c);
-            const remaining = GOAL_SCORE - total;
-            const isWinner = total >= GOAL_SCORE;
-            const isNearWin = remaining > 0 && remaining <= 50;
-
-            let boxClass = "score-box";
-            if (isWinner) boxClass += " winner-blink";
-            else if (isNearWin) boxClass += " near-win";
-
-            return `
-                <td>
-                    <div class="${boxClass}">
-                        <span class="score-mobile-name">${p.name}</span>
-                        <span class="score-up">${remaining}</span>
-                        <span class="score-down">${total}</span>
-                    </div>
-                </td>
-            `;
-        }).join('');
-    }
-
-    function calculateTotal(col) {
-        return scores.reduce((sum, row) => {
-            const val = parseInt(row[col]);
-            return sum + (isNaN(val) ? 0 : val);
-        }, 0);
-    }
-
-    function selectCell(r, c) {
-        activeCell = { r, c };
-        updateFocus();
-    }
-
-    function updateFocus() {
-        document.querySelectorAll('.score-input').forEach(el => el.classList.remove('system-focus'));
-        const activeInput = document.getElementById(`cell-${activeCell.r}-${activeCell.c}`);
-        if (activeInput) {
-            activeInput.classList.add('system-focus');
-            if (!isMobile) {
-                activeInput.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-            }
-        }
-
-        document.getElementById('currentRoundDisplay').innerText = `Runde ${activeCell.r + 1}`;
-        document.getElementById('turnDisplay').innerText = `An der Reihe: ${players[activeCell.c].name}`;
-    }
-
-    function renderPad() {
-        const viewport = document.getElementById('padViewport');
-        const dots = document.getElementById('padDots');
         
-        viewport.innerHTML = '';
-        dots.innerHTML = '';
-
-        const pages = [
-            Array.from({ length: 20 }, (_, i) => i + 1),
-            Array.from({ length: 20 }, (_, i) => i + 21),
-            Array.from({ length: 20 }, (_, i) => i + 41)
-        ];
-
-        pages.forEach((nums, pIdx) => {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'pad-page';
-
-            nums.forEach(num => {
-                const btn = document.createElement('button');
-                btn.className = 'pad-btn';
-                btn.innerText = num;
-                btn.onclick = () => handlePadInput(num);
-                pageDiv.appendChild(btn);
+        const nGrid = document.getElementById('namesGrid'); nGrid.innerHTML = '';
+        activeNames.forEach((n, i) => {
+            if (isArcView && (!n || n.trim() === "")) return; 
+            const div = document.createElement('div'); div.className = 'name-slot';
+            div.innerHTML = `<input value="${n}" ${isArcView?'readonly':''} oninput="updateName(${i}, this.value)" placeholder="...">
+                <button type="button" onclick="changeStarter(${i})" ${isArcView?'disabled':''} class="btn-starter ${startIdx===i?'active':''}">${startIdx===i?'STARTER':'WAHL'}</button>`;
+            nGrid.appendChild(div);
+        });
+        
+        document.getElementById('hRow').innerHTML = '<th style="width: 35px;">RD</th>' + sorted.map(p => `<th>${getHeaderNameWithAvg(p)}</th>`).join('');
+        const body = document.getElementById('gBody'); body.innerHTML = '';
+        activeScores.forEach((row, rIdx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${rIdx+1}</td>`;
+            sorted.forEach((p, apIdx) => {
+                const td = document.createElement('td');
+                const inp = document.createElement('input');
+                inp.className = `score-input ${(!isArcView && focus.r===rIdx && focus.pI===p.i)?'system-focus':''}`;
+                inp.value = activeScores[rIdx][p.i] || ""; inp.type = "number"; inp.id = `input-${rIdx}-${p.i}`;
+                if (isArcView) inp.setAttribute('readonly', 'true');
+                if(viewMode === 'mobile') inp.setAttribute('inputmode', 'none'); 
+                inp.onfocus = () => { if(!isArcView) { focus = { r: rIdx, pI: p.i, apIdx }; scrollCheck(inp); } };
+                inp.onkeydown = (e) => { if(e.key === "Enter" || e.key === "Tab") { e.preventDefault(); isQuickPress = false; jumpToNext(); } };
+                inp.oninput = (e) => { if(!isArcView) { scores[rIdx][p.i] = e.target.value; save(); updateUI(sorted); } };
+                td.appendChild(inp); tr.appendChild(td);
             });
+            body.appendChild(tr);
+        });
+        
+        setupRaceTrackStructure();
+        updateUI(sorted);
+        applyRaceVisibility();
+    }
 
-            const btnRonny = document.createElement('button');
-            btnRonny.className = 'pad-btn btn-ronny';
-            btnRonny.innerText = 'RONNY (0)';
-            btnRonny.onclick = () => handlePadInput(0);
-            pageDiv.appendChild(btnRonny);
+    function setupRaceTrackStructure() {
+        const track = document.getElementById('raceTrackUI');
+        const sorted = getSortedActive();
+        
+        const expectedLayout = sorted.map(p => `${p.i}:${pEmojis[p.i]||'🐎'}`).join('-');
+        
+        if (track.getAttribute('data-layout-id') === expectedLayout) return; 
 
-            const btnUndo = document.createElement('button');
-            btnUndo.className = 'pad-btn btn-undo';
-            btnUndo.innerText = '⌫';
-            btnUndo.onclick = () => handleUndo();
-            pageDiv.appendChild(btnUndo);
+        track.innerHTML = '';
+        track.setAttribute('data-layout-id', expectedLayout);
 
-            viewport.appendChild(pageDiv);
+        sorted.forEach(p => {
+            const laneEmoji = pEmojis[p.i] || "🐎";
+            
+            const mirrorClass = DEFAULT_RIGHT_FACING.includes(laneEmoji) ? "mirror" : "";
 
-            const dot = document.createElement('div');
-            dot.className = `pad-dot ${pIdx === 0 ? 'active' : ''}`;
-            dots.appendChild(dot);
+            const lane = document.createElement('div');
+            lane.className = 'race-lane';
+            lane.id = `race-lane-${p.i}`;
+            lane.onclick = () => openEmojiPicker(p.i, p.n);
+            
+            lane.innerHTML = `
+                <div class="race-name-field">${p.n} ⚙️</div>
+                <div class="race-track-path">
+                    <div class="race-finish-line">🏁</div>
+                    <div class="race-horse-wrapper" id="horse-wrapper-${p.i}" style="left: 0%;">
+                        <span class="race-horse-text" id="horse-text-${p.i}">0</span>
+                        <span class="race-horse-emoji ${mirrorClass}" id="horse-emoji-${p.i}">${laneEmoji}</span>
+                    </div>
+                </div>
+            `;
+            track.appendChild(lane);
         });
 
-        viewport.onscroll = () => {
-            const pageWidth = viewport.clientWidth;
-            if (pageWidth > 0) {
-                const activeIdx = Math.round(viewport.scrollLeft / pageWidth);
-                Array.from(dots.children).forEach((d, i) => {
-                    d.classList.toggle('active', i === activeIdx);
-                });
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        stickyCopy.innerHTML = track.innerHTML;
+        
+        sorted.forEach(p => {
+            const copyLane = stickyCopy.querySelector(`#race-lane-${p.i}`);
+            if (copyLane) {
+                copyLane.onclick = () => openEmojiPicker(p.i, p.n);
             }
-        };
-    }
-
-    function handlePadInput(val) {
-        scores[activeCell.r][activeCell.c] = val;
-        saveState();
-        renderTable();
-        renderStats();
-        renderRaceTrack();
-        
-        advanceTurn();
-    }
-
-    function handleUndo() {
-        scores[activeCell.r][activeCell.c] = '';
-        saveState();
-        renderTable();
-        renderStats();
-        renderRaceTrack();
-        updateFocus();
-    }
-
-    function advanceTurn() {
-        const activePlayers = getActivePlayers();
-        const currentIndexInActive = activePlayers.findIndex(p => p.originalIndex === activeCell.c);
-        
-        if (currentIndexInActive < activePlayers.length - 1) {
-            activeCell.c = activePlayers[currentIndexInActive + 1].originalIndex;
-        } else {
-            if (activeCell.r < TOTAL_ROUNDS - 1) {
-                activeCell.r++;
-                activeCell.c = activePlayers[0].originalIndex;
-            }
-        }
-        updateFocus();
-    }
-
-    function toggleSetup() {
-        const s = document.getElementById('setupSection');
-        s.style.display = s.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function toggleAnalysis() {
-        const a = document.getElementById('analysisGrid');
-        if (a.classList.contains('slide-hide')) {
-            renderAnalysis();
-            a.classList.remove('slide-hide');
-        } else {
-            a.classList.add('slide-hide');
-        }
-    }
-
-    function renderAnalysis() {
-        const grid = document.getElementById('analysisGrid');
-        const activePlayers = getActivePlayers();
-
-        grid.innerHTML = activePlayers.map(p => {
-            const c = p.originalIndex;
-            const playerScores = scores.map(row => parseInt(row[c])).filter(v => !isNaN(v));
-            
-            const count = playerScores.length;
-            const avg = count ? (playerScores.reduce((a,b) => a+b, 0) / count).toFixed(1) : 0;
-            const max = count ? Math.max(...playerScores) : 0;
-            const ronnys = playerScores.filter(v => v === 0).length;
-
-            return `
-                <div class="analysis-card">
-                    <strong style="color:var(--accent);">${p.name}</strong>
-                    <div style="font-size:0.75rem; margin-top:5px;">
-                        Ø Punkte: <b>${avg}</b><br>
-                        Höchste: <b>${max}</b><br>
-                        Ronnys (0er): <b style="color:var(--ronny);">${ronnys}</b>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function toggleRaceTrack() {
-        const r = document.getElementById('raceTrack');
-        raceTrackVisible = !raceTrackVisible;
-        
-        if (raceTrackVisible) {
-            r.classList.add('slide-show');
-        } else {
-            r.classList.remove('slide-show');
-            hideRaceTrackOverlay();
-        }
+        });
     }
 
     function renderRaceTrack() {
-        const container = document.getElementById('raceTrack');
-        const activePlayers = getActivePlayers();
+        if (!showRace) return;
+        const sorted = getSortedActive();
+        const activeScores = isArcView ? arcScores : scores;
 
-        const trackHTML = activePlayers.map(p => {
-            const c = p.originalIndex;
-            const total = calculateTotal(c);
-            const progress = Math.min(100, Math.max(0, (total / GOAL_SCORE) * 100));
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) total += v;
+            });
 
-            return `
-                <div class="race-lane" onclick="selectCell(${activeCell.r}, ${c})">
-                    <div class="race-name-field">${p.name}</div>
-                    <div class="race-track-path">
-                        <div class="race-horse-wrapper" style="left: ${progress}%;">
-                            <span class="race-horse-emoji mirror">🏇</span>
-                            <span class="race-horse-text">${total}</span>
-                        </div>
-                        <div class="race-finish-line">🏁</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+            let pct = Math.min(100, (total / 10000) * 100);
 
-        container.innerHTML = trackHTML;
+            const origPath = document.querySelector(`#raceTrackUI #horse-wrapper-${p.i}`)?.closest('.race-track-path');
+            const wrapperOrig = document.querySelector(`#raceTrackUI #horse-wrapper-${p.i}`);
+            const textOrig = document.querySelector(`#raceTrackUI #horse-text-${p.i}`);
 
-        const overlay = document.getElementById('raceTrackOverlay');
-        if (overlay) {
-            overlay.innerHTML = trackHTML;
-        }
+            if (origPath && wrapperOrig && textOrig) {
+                const pathWidthOrig = origPath.getBoundingClientRect().width;
+                const wrapperWidthOrig = wrapperOrig.getBoundingClientRect().width || 65;
+                const availableWidthOrig = pathWidthOrig - wrapperWidthOrig;
+                const calculatedLeftOrig = (pct / 100) * availableWidthOrig;
+
+                wrapperOrig.style.right = 'auto';
+                wrapperOrig.style.left = `${calculatedLeftOrig}px`;
+                textOrig.innerText = `${total}`;
+            }
+
+            const copyPath = document.querySelector(`#raceTrackStickyCopy #horse-wrapper-${p.i}`)?.closest('.race-track-path');
+            const wrapperCopy = document.querySelector(`#raceTrackStickyCopy #horse-wrapper-${p.i}`);
+            const textCopy = document.querySelector(`#raceTrackStickyCopy #horse-text-${p.i}`);
+
+            if (copyPath && wrapperCopy && textCopy) {
+                const pathWidthCopy = copyPath.getBoundingClientRect().width;
+                const wrapperWidthCopy = wrapperCopy.getBoundingClientRect().width || 65;
+                const availableWidthCopy = pathWidthCopy - wrapperWidthCopy;
+                const calculatedLeftCopy = (pct / 100) * availableWidthCopy;
+
+                wrapperCopy.style.right = 'auto';
+                wrapperCopy.style.left = `${calculatedLeftCopy}px`;
+                textCopy.innerText = `${total}`;
+            }
+        });
     }
 
-    function handleTableScroll() {
-        if (!isMobile || !raceTrackVisible) return;
-        
-        const raceTrack = document.getElementById('raceTrack');
-        if (!raceTrack) return;
+    function updateUI(sorted) {
+        const activeScores = isArcView ? arcScores : scores;
+        let dist = { ronny:{}, small:{}, med:{}, big:{}, elite:{}, meister:{} };
+        let pendingWinners = [];
 
-        const rect = raceTrack.getBoundingClientRect();
-        if (rect.bottom < 0) {
-            showRaceTrackOverlay();
-        } else {
-            hideRaceTrackOverlay();
-        }
-    }
-
-    function showRaceTrackOverlay() {
-        const overlay = document.getElementById('raceTrackOverlay');
-        if (overlay && raceTrackVisible) {
-            overlay.style.display = 'block';
-        }
-    }
-
-    function hideRaceTrackOverlay() {
-        const overlay = document.getElementById('raceTrackOverlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
-
-    function toggleMobileMode() {
-        isMobile = !isMobile;
-        document.body.classList.toggle('mobile-mode', isMobile);
-        saveState();
-        renderTable();
-        updateFocus();
-        updateLandscapePlayerCountClass();
-    }
-
-    function toggleTheme() {
-        isLight = !isLight;
-        document.body.classList.toggle('light-mode', isLight);
-        saveState();
-    }
-
-    function resetAll() {
-        if (confirm("Wirklich das gesamte Spiel zurücksetzen?")) {
-            scores = Array(TOTAL_ROUNDS).fill(null).map(() => Array(MAX_PLAYERS).fill(''));
-            activeCell = { r: 0, c: starterIndex };
-            saveState();
-            renderTable();
-            renderStats();
-            renderRaceTrack();
-            updateFocus();
-        }
-    }
-
-    function finishGame() {
-        let maxScore = -1;
-        let winnerIdx = -1;
-
-        getActivePlayers().forEach(p => {
-            const c = p.originalIndex;
-            const total = calculateTotal(c);
-            if (total > maxScore) {
-                maxScore = total;
-                winnerIdx = c;
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) total += v;
+            });
+            if (total >= 10000) {
+                pendingWinners.push(p.i);
             }
         });
 
-        if (winnerIdx !== -1) {
-            players[winnerIdx].wins++;
-            alert(`🏆 Herzlichen Glückwunsch ${players[winnerIdx].name}! Gewonnen mit ${maxScore} Punkten!`);
+        const f = document.getElementById('tRow'); f.innerHTML = '<td>Σ</td>';
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) {
+                    total += v;
+                    let cat = v===0?'ronny':v<=450?'small':v<=700?'med':v<=950?'big':v<=1500?'elite':'meister';
+                    if(!dist[cat][p.i]) dist[cat][p.i] = 0;
+                    dist[cat][p.i]++;
+                }
+            });
+            let rest = 10000 - total;
             
-            saveHistory(players[winnerIdx].name, maxScore);
-            saveState();
-            renderStats();
-        }
-    }
+            if (!isArcView) {
+                if (rest < 1001 && rest > 0) {
+                    if (!playedUnder1000[p.i]) {
+                        playCustomAudio('unter-1000.mp3');
+                        playedUnder1000[p.i] = true;
+                    }
+                } else if (rest >= 1001) {
+                    playedUnder1000[p.i] = false;
+                }
 
-    function saveHistory(winnerName, score) {
-        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
-        hist.unshift({
-            date: new Date().toLocaleString(),
-            winner: winnerName,
-            score: score,
-            scores: JSON.parse(JSON.stringify(scores)),
-            players: JSON.parse(JSON.stringify(players))
+                if (rest <= 0) {
+                    if (!playedWinnerSound[p.i]) {
+                        playCustomAudio('sieger.mp3');
+                        playedWinnerSound[p.i] = true;
+                    }
+                } else {
+                    playedWinnerSound[p.i] = false;
+                }
+            }
+
+            let statusClass = "";
+            let displayText = rest;
+            if (rest <= 0) {
+                statusClass = "winner-blink";
+                displayText = `👑 ${rest} 👑`;
+            } else if (rest <= 1000) {
+                statusClass = "near-win";
+            }
+            f.innerHTML += `<td><div class="score-box ${statusClass}"><span class="score-mobile-name">${p.n}</span><span class="score-down">${displayText}</span><span class="score-up">${total}</span></div></td>`;
         });
-        localStorage.setItem('wb_history', JSON.stringify(hist));
+
+        const displayNamesSource = isArcView ? arcNames : pNames;
+        document.getElementById('statsDisp').innerHTML = displayNamesSource.map((n,i)=>({n,i})).map(p => {
+            if (!p.n || p.n.trim() === "") {
+                return `<div class="stat-item" style="opacity: 0.2;"><span class="stat-name">-</span><span class="stat-wins">👑 0</span></div>`;
+            }
+            let isWinningNow = pendingWinners.includes(p.i) ? '<span class="pending-win">(+1)</span>' : '';
+            return `<div class="stat-item"><span class="stat-name">${p.n}</span><span class="stat-wins">👑 ${stats[p.i]||0}${isWinningNow}</span></div>`;
+        }).join('');
+
+        const cats = [['RONNYS (0)','ronny'],['350 bis 450','small'],['500 bis 700','med'],['750 bis 950','big'],['1000 bis 1450','elite'],['Über 1500','meister']];
+        document.getElementById('analysisUI').innerHTML = cats.map(c => {
+            const details = sorted.map(p => `<div class="ana-row" style="font-size:0.9rem; margin-top:3px; display:flex; justify-content:between;"><span>${p.n}:</span> <b style="margin-left:auto;">${dist[c[1]][p.i] || 0}</b></div>`).join('');
+            return `<div class="analysis-card"><div style="font-size:0.95rem; font-weight:bold; color:var(--accent); border-bottom: 1px solid var(--border); padding-bottom:3px; margin-bottom:5px;">${c[0]}</div>${details}</div>`;
+        }).join('');
+
+        renderRaceTrack();
     }
 
-    function showHistory() {
-        const view = document.getElementById('histView');
-        const list = document.getElementById('histList');
-        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
-
-        list.innerHTML = hist.map((item, idx) => `
-            <div class="history-item">
-                <div>
-                    <strong>${item.date}</strong><br>
-                    Gewinner: <span style="color:var(--locked);">${item.winner}</span> (${item.score} Pkt)
-                </div>
-                <button class="btn-load-hist" onclick="loadHistoryItem(${idx})">Laden</button>
-            </div>
-        `).join('');
-
-        view.style.display = 'block';
+    function getSortedActive() { 
+        const names = isArcView ? arcNames : pNames; 
+        const active = names.map((n, i) => ({n, i})).filter(p => p.n && p.n.trim() !== ""); 
+        if (active.length === 0) return [];
+        const sPos = active.findIndex(p => p.i === startIdx); 
+        return (sPos === -1) ? active : [...active.slice(sPos), ...active.slice(0, sPos)]; 
     }
-
-    function hideHistory() {
-        document.getElementById('histView').style.display = 'none';
-    }
-
-    function loadHistoryItem(idx) {
-        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
-        if (hist[idx]) {
-            scores = hist[idx].scores;
-            players = hist[idx].players;
-            saveState();
-            renderStats();
-            renderSetup();
-            renderTable();
-            renderRaceTrack();
-            hideHistory();
-            updateFocus();
+    
+    async function saveCSV() {
+        const d = { pNames, scores, archive, startIdx, pEmojis };
+        const jsonString = JSON.stringify(d);
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const fileName = `Würfel-Backup-${yy}.${mm}.${dd}-${hh}.${min}.csv`;
+        
+        try {
+            const blob = new Blob([jsonString], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            openAlert("Erfolg", "Das Backup wurde erfolgreich erstellt und der Download wurde gestartet.");
+        } catch (err) {
+            openAlert("Fehler", "Das Backup konnte nicht erstellt werden.");
         }
     }
 
-    function openChangelog() {
-        document.getElementById('changelogModal').style.display = 'flex';
+    function loadCSV(e) { 
+        const r = new FileReader(); 
+        r.onload = (ev) => { 
+            try { 
+                const d = JSON.parse(ev.target.result); 
+                pNames=d.pNames; scores=d.scores; archive=d.archive; startIdx=d.startIdx; 
+                if(d.pEmojis) pEmojis=d.pEmojis; 
+                undoHistory = [];
+                save(); render(); 
+            } catch(err) { 
+                openAlert("Fehler", "Die Datei konnte nicht als gültiges Backup geladen werden!"); 
+            } 
+        }; 
+        r.readAsText(e.target.files[0]); 
+    }
+    
+    function openHistory() { document.getElementById('histView').style.display = 'block'; renderArchiveList(); }
+    
+    function renderArchiveList() { 
+        document.getElementById('arcList').innerHTML = archive.map((g, idx) => {
+            let displayW = sanitizeOldNames(g.w);
+            return `
+            <div class="history-item">
+                <div><strong>${g.d}</strong><br><small>${displayW}</small></div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-load-hist" onclick="showArchiveGame(${idx})">LADEN</button>
+                    <button class="btn-load-hist" style="background:var(--ronny);" onclick="deleteHistoryItem(${idx})">LÖSCHEN</button>
+                </div>
+            </div>`;
+        }).join('') + (archive.length > 0 ? `<button class="btn-top" style="background:var(--ronny); width:100%; margin-top:15px; padding:10px 0;" onclick="clearAllHistory()">⚠️ GESAMTE HISTORIE LÖSCHEN</button>` : '<div style="color:#aaa; text-align:center; padding:20px;">Keine Einträge vorhanden</div>'); 
+    }
+    
+    function deleteHistoryItem(idx) {
+        openConfirm(
+            "Eintrag löschen?",
+            "Diesen Eintrag aus der Historie löschen? (Die Kronen-Statistik wird sofort live angepasst)",
+            () => {
+                openConfirm(
+                    "Absolut sicher?",
+                    "Bist du dir wirklich absolut sicher? Dieser Schritt kann nicht rückgängig gemacht werden!",
+                    () => {
+                        archive.splice(idx, 1);
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
+            }
+        );
     }
 
-    function closeChangelog() {
-        document.getElementById('changelogModal').style.display = 'none';
+    function clearAllHistory() {
+        openConfirm(
+            "GESAMTE Historie löschen?",
+            "Möchtest du wirklich die GESAMTE Historie unwiderruflich löschen? (Dadurch werden auch ALLE Kronen zurückgesetzt)",
+            () => {
+                openConfirm(
+                    "Sämtliche Daten verlieren?",
+                    "Bist du dir wirklich absolut sicher? SÄMTLICHE Spiele und Statistiken gehen verloren!",
+                    () => {
+                        archive = [];
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
+            }
+        );
     }
 
-    window.onload = init;
+    function showArchiveGame(idx) { 
+        let rawNames = archive[idx].names || pNames;
+        arcNames = rawNames.map(n => sanitizeOldNames(n)); 
+        arcScores = JSON.parse(JSON.stringify(archive[idx].s)); 
+        isArcView = true; 
+        document.getElementById('arcBanner').style.display = 'block'; 
+        document.getElementById('histView').style.display='none'; 
+        render(); 
+    }
+    
+    function exitArchive() { isArcView = false; document.getElementById('arcBanner').style.display = 'none'; render(); }
+    
+    function askMasterReset() { 
+        openConfirm(
+            "Kompletter Board-Reset?",
+            "Möchtest du wirklich das Board komplett zurücksetzen? (Dadurch werden ALLE Namen, aktuellen Punkte und die komplette Historie unwiderruflich gelöscht)",
+            () => {
+                openConfirm(
+                    "Unwiderruflich löschen?",
+                    "Bist du dir absolut sicher? Es gibt KEINE Möglichkeit, die Daten danach wiederherzustellen (außer du hast ein Backup)!",
+                    () => {
+                        localStorage.clear(); 
+                        location.reload(); 
+                    }
+                );
+            }
+        );
+    }
+
+    function finishCheck() {
+        const active = getSortedActive(); let winners = [];
+        active.forEach(p => { let s = 0; scores.forEach(r => s += (parseInt(r[p.i]) || 0)); if(s >= 10000) { winners.push(p.n); } });
+        
+        let winText = "-";
+        if (winners.length > 1) {
+            winText = "Unentschieden: " + winners.join(", ");
+            finishGame(winText);
+        } else if (winners.length === 1) {
+            winText = "Sieger: " + winners[0];
+            finishGame(winText);
+        } else {
+            openConfirm(
+                "Spiel vorzeitig abbrechen?",
+                "Achtung: Es hat noch kein Spieler die 10.000 Punkte erreicht!\n\nMöchtest du dieses laufende Spiel wirklich vorzeitig abbrechen und eine neue Runde starten?",
+                () => {
+                    winText = "Vorzeitig beendet";
+                    finishGame(winText);
+                }
+            );
+        }
+    }
+
+    function finishGame(winText) {
+        archive.unshift({ d: new Date().toLocaleString(), w: winText, s: JSON.parse(JSON.stringify(scores)), names: JSON.parse(JSON.stringify(pNames)) });
+        scores = [Array(MAX_P).fill("")]; 
+        undoHistory = [];
+        
+        playCustomAudio('neue-runde.mp3');
+        
+        playedUnder1000 = Array(MAX_P).fill(false);
+        playedWinnerSound = Array(MAX_P).fill(false);
+        
+        const sorted = getSortedActive();
+        if (sorted.length > 0) {
+            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
+        }
+        
+        recalculateKingOfTheHill();
+        render(); 
+        save();
+    }
+
+    window.addEventListener('scroll', () => {
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        
+        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
+            if (stickyCopy.style.display !== 'block') {
+                stickyCopy.style.display = 'block';
+                renderRaceTrack();
+            }
+        } else {
+            stickyCopy.style.display = 'none';
+        }
+    }, { passive: true });
+
+    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
+    
+    // SEITE 1: 0 (3 Felder) + Undo (1 Feld) = 4 Felder (Reihe 1). 
+    // Dazu 20 Nummern (350 bis 1300) = 5 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
+    const page1 = document.getElementById('padPage1');
+    for(let v=350; v<=1300; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page1.appendChild(b); 
+    }
+
+    // SEITE 2: 24 Nummern (1350 bis 2500) = 6 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
+    const page2 = document.getElementById('padPage2');
+    for(let v=1350; v<=2500; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page2.appendChild(b); 
+    }
+
+    // SEITE 3: 24 Nummern (2550 bis 3700) = 6 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
+    const page3 = document.getElementById('padPage3');
+    for(let v=2550; v<=3700; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page3.appendChild(b); 
+    }
+
+    /* --- LIVE UHRZEIT & AKKUSTAND --- */
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeElem = document.getElementById('time-display');
+        if (timeElem) {
+            timeElem.innerText = `${hours}:${minutes}`;
+        }
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    async function updateBattery() {
+        const battElem = document.getElementById('battery-display');
+        if (!battElem) return;
+
+        if ('getBattery' in navigator) {
+            try {
+                const battery = await navigator.getBattery();
+                const updateLevel = () => {
+                    const level = Math.round(battery.level * 100);
+                    const charging = battery.charging ? '⚡ ' : '🔋 ';
+                    battElem.innerText = `${charging}${level}%`;
+                };
+                
+                updateLevel();
+                battery.addEventListener('levelchange', updateLevel);
+                battery.addEventListener('chargingchange', updateLevel);
+            } catch (e) {
+                battElem.innerText = '🔋 --%';
+            }
+        } else {
+            battElem.style.display = 'none';
+        }
+    }
+    updateBattery();
+
+    render();
+    checkChangelog();
 </script>
-
 </body>
 </html>
