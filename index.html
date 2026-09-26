@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     
-    <title>Würfelboard v0.99 Stable</title>
+    <title>Würfelboard v0.99.1 Stable</title>
     <style>
         :root {
             --primary: #2c3e50; --accent: #e67e22; --win: #27ae60; --ronny: #e74c3c;
@@ -277,6 +277,7 @@
 
         .stats-section { background: var(--table-head); color: white; padding: 8px; border-radius: 10px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; flex-shrink: 0; }
         .stat-item { border-right: 1px solid #444; display: flex; flex-direction: column; }
+        .stat-item:last-child { border-right: none; }
         .stat-name { font-size: 0.6rem; color: #888; }
         .stat-wins { font-size: 0.9rem; font-weight: bold; color: #f1c40f; }
         .stat-wins .pending-win { color: #27ae60; font-weight: bold; animation: blinker 1s linear infinite; margin-left: 2px; }
@@ -487,6 +488,71 @@
 </head>
 <body>
 
+<div class="app">
+    <div class="header-bar">
+        <div class="header-left">
+            <div class="btn-group">
+                <button class="btn-top" onclick="toggleSetup()">👥 Spieler</button>
+                <button class="btn-top" onclick="toggleAnalysis()">📊 Stats</button>
+                <button class="btn-top" onclick="toggleRaceTrack()">🏁 Bahn</button>
+            </div>
+            <div class="header-status">
+                <span id="currentRoundDisplay">Runde 1</span> | 
+                <span id="turnDisplay">An der Reihe: -</span>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-top" onclick="toggleMobileMode()" id="btnMobile">📱 Mobil</button>
+            <button class="btn-top" onclick="toggleTheme()">🌓 Theme</button>
+            <button class="btn-top" onclick="showHistory()">📜 Historie</button>
+            <button class="btn-top" onclick="openChangelog()">ℹ️ Info</button>
+            <button class="btn-top" style="background:var(--win)" onclick="finishGame()">🏆 Ende</button>
+            <button class="btn-top" style="background:#c0392b" onclick="resetAll()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <div id="statsSection" class="stats-section"></div>
+
+    <div id="setupSection" class="setup-section" style="display:none;">
+        <div id="namesGrid" class="names-grid"></div>
+    </div>
+
+    <div id="raceTrack" class="race-track-container"></div>
+
+    <div class="game-container">
+        <div class="table-area" id="tableArea">
+            <table id="scoreTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+                <tfoot>
+                    <tr id="tableFooter"></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="quick-pad" id="quickPad">
+            <div class="pad-viewport" id="padViewport">
+                <!-- Dynamisch generiert -->
+            </div>
+            <div class="pad-dots" id="padDots"></div>
+        </div>
+    </div>
+
+    <div id="analysisGrid" class="analysis-grid slide-hide"></div>
+</div>
+
+<div id="raceTrackOverlay" class="race-track-sticky-overlay"></div>
+
+<div id="histView">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h2 style="color:white; margin:0;">Gespeicherte Spiele</h2>
+        <button class="btn-top" onclick="hideHistory()">❌ Schließen</button>
+    </div>
+    <div id="histList"></div>
+</div>
+
 <div id="changelogModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -496,7 +562,7 @@
         <div class="modal-body">
             <div class="changelog-version">v0.99.1 Stable</div>
             <ul class="changelog-list">
-                <li>Code-Integration und Aktualisierung durchgeführt.</li>
+                <li>Vollständige Code-Synthese und Struktur-Wiederherstellung.</li>
                 <li>Changelog-Historie gepflegt.</li>
             </ul>
             <div class="changelog-version">v0.99 Stable</div>
@@ -511,6 +577,514 @@
 </div>
 
 <script>
+    const MAX_PLAYERS = 8;
+    const TOTAL_ROUNDS = 15;
+    const GOAL_SCORE = 300;
+
+    let players = JSON.parse(localStorage.getItem('wb_players')) || [
+        { name: 'Spieler 1', wins: 0, active: true },
+        { name: 'Spieler 2', wins: 0, active: true },
+        { name: 'Spieler 3', wins: 0, active: false },
+        { name: 'Spieler 4', wins: 0, active: false },
+        { name: 'Spieler 5', wins: 0, active: false },
+        { name: 'Spieler 6', wins: 0, active: false },
+        { name: 'Spieler 7', wins: 0, active: false },
+        { name: 'Spieler 8', wins: 0, active: false }
+    ];
+
+    let starterIndex = parseInt(localStorage.getItem('wb_starter')) || 0;
+    let scores = JSON.parse(localStorage.getItem('wb_scores')) || Array(TOTAL_ROUNDS).fill(null).map(() => Array(MAX_PLAYERS).fill(''));
+    let activeCell = { r: 0, c: 0 };
+    let isMobile = localStorage.getItem('wb_mobile') === 'true';
+    let isLight = localStorage.getItem('wb_light') === 'true';
+    let raceTrackVisible = false;
+
+    function init() {
+        if (isLight) document.body.classList.add('light-mode');
+        if (isMobile) document.body.classList.add('mobile-mode');
+        
+        renderStats();
+        renderSetup();
+        renderTable();
+        renderPad();
+        renderRaceTrack();
+        
+        updateFocus();
+        updateLandscapePlayerCountClass();
+
+        const tableArea = document.getElementById('tableArea');
+        if (tableArea) {
+            tableArea.addEventListener('scroll', handleTableScroll);
+        }
+    }
+
+    function saveState() {
+        localStorage.setItem('wb_players', JSON.stringify(players));
+        localStorage.setItem('wb_starter', starterIndex);
+        localStorage.setItem('wb_scores', JSON.stringify(scores));
+        localStorage.setItem('wb_mobile', isMobile);
+        localStorage.setItem('wb_light', isLight);
+    }
+
+    function getActivePlayers() {
+        return players.map((p, i) => ({ ...p, originalIndex: i })).filter(p => p.active);
+    }
+
+    function updateLandscapePlayerCountClass() {
+        const activeCount = getActivePlayers().length;
+        if (activeCount <= 4) {
+            document.body.classList.add('few-players');
+            document.body.classList.remove('many-players');
+        } else {
+            document.body.classList.add('many-players');
+            document.body.classList.remove('few-players');
+        }
+    }
+
+    function renderStats() {
+        const statsEl = document.getElementById('statsSection');
+        statsEl.innerHTML = players.map((p, i) => {
+            if (!p.active) return `<div class="stat-item" style="opacity:0.3;"><span class="stat-name">${p.name}</span><span class="stat-wins">-</span></div>`;
+            
+            const totalScore = calculateTotal(i);
+            const isPendingWin = totalScore >= GOAL_SCORE;
+            
+            return `
+                <div class="stat-item">
+                    <span class="stat-name">${p.name}</span>
+                    <span class="stat-wins">
+                        ${p.wins}
+                        ${isPendingWin ? '<span class="pending-win">🏆</span>' : ''}
+                    </span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderSetup() {
+        const grid = document.getElementById('namesGrid');
+        grid.innerHTML = players.map((p, i) => `
+            <div class="name-slot">
+                <input type="text" value="${p.name}" onchange="updateName(${i}, this.value)">
+                <div style="display:flex; gap:4px; align-items:center;">
+                    <label style="font-size:0.65rem; display:flex; align-items:center; gap:2px; cursor:pointer;">
+                        <input type="checkbox" ${p.active ? 'checked' : ''} onchange="togglePlayerActive(${i})"> Aktiv
+                    </label>
+                    <button class="btn-starter ${starterIndex === i ? 'active' : ''}" onclick="setStarter(${i})">
+                        ${starterIndex === i ? '★ Start' : 'Start'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function togglePlayerActive(i) {
+        players[i].active = !players[i].active;
+        if (!players[starterIndex].active) {
+            const firstActive = players.findIndex(p => p.active);
+            starterIndex = firstActive !== -1 ? firstActive : 0;
+        }
+        saveState();
+        renderStats();
+        renderSetup();
+        renderTable();
+        renderPad();
+        renderRaceTrack();
+        updateLandscapePlayerCountClass();
+    }
+
+    function setStarter(i) {
+        if (!players[i].active) return;
+        starterIndex = i;
+        saveState();
+        renderSetup();
+        updateFocus();
+    }
+
+    function updateName(i, name) {
+        players[i].name = name || `Spieler ${i+1}`;
+        saveState();
+        renderStats();
+        renderTable();
+        renderRaceTrack();
+    }
+
+    function renderTable() {
+        const header = document.getElementById('tableHeader');
+        const body = document.getElementById('tableBody');
+        const footer = document.getElementById('tableFooter');
+
+        const activePlayers = getActivePlayers();
+
+        header.innerHTML = '<th>Runde</th>' + activePlayers.map(p => `<th>${p.name}</th>`).join('');
+
+        body.innerHTML = '';
+        for (let r = 0; r < TOTAL_ROUNDS; r++) {
+            const tr = document.createElement('tr');
+            let html = `<td style="font-size:0.75rem; font-weight:bold; background:rgba(0,0,0,0.1);">${r + 1}</td>`;
+            
+            activePlayers.forEach((p) => {
+                const c = p.originalIndex;
+                const val = scores[r][c];
+                html += `
+                    <td>
+                        <input type="text" readonly class="score-input" id="cell-${r}-${c}" value="${val}" onclick="selectCell(${r}, ${c})">
+                    </td>
+                `;
+            });
+            tr.innerHTML = html;
+            body.appendChild(tr);
+        }
+
+        footer.innerHTML = '<td>Gesamt</td>' + activePlayers.map(p => {
+            const c = p.originalIndex;
+            const total = calculateTotal(c);
+            const remaining = GOAL_SCORE - total;
+            const isWinner = total >= GOAL_SCORE;
+            const isNearWin = remaining > 0 && remaining <= 50;
+
+            let boxClass = "score-box";
+            if (isWinner) boxClass += " winner-blink";
+            else if (isNearWin) boxClass += " near-win";
+
+            return `
+                <td>
+                    <div class="${boxClass}">
+                        <span class="score-mobile-name">${p.name}</span>
+                        <span class="score-up">${remaining}</span>
+                        <span class="score-down">${total}</span>
+                    </div>
+                </td>
+            `;
+        }).join('');
+    }
+
+    function calculateTotal(col) {
+        return scores.reduce((sum, row) => {
+            const val = parseInt(row[col]);
+            return sum + (isNaN(val) ? 0 : val);
+        }, 0);
+    }
+
+    function selectCell(r, c) {
+        activeCell = { r, c };
+        updateFocus();
+    }
+
+    function updateFocus() {
+        document.querySelectorAll('.score-input').forEach(el => el.classList.remove('system-focus'));
+        const activeInput = document.getElementById(`cell-${activeCell.r}-${activeCell.c}`);
+        if (activeInput) {
+            activeInput.classList.add('system-focus');
+            if (!isMobile) {
+                activeInput.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+        }
+
+        document.getElementById('currentRoundDisplay').innerText = `Runde ${activeCell.r + 1}`;
+        document.getElementById('turnDisplay').innerText = `An der Reihe: ${players[activeCell.c].name}`;
+    }
+
+    function renderPad() {
+        const viewport = document.getElementById('padViewport');
+        const dots = document.getElementById('padDots');
+        
+        viewport.innerHTML = '';
+        dots.innerHTML = '';
+
+        const pages = [
+            Array.from({ length: 20 }, (_, i) => i + 1),
+            Array.from({ length: 20 }, (_, i) => i + 21),
+            Array.from({ length: 20 }, (_, i) => i + 41)
+        ];
+
+        pages.forEach((nums, pIdx) => {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'pad-page';
+
+            nums.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'pad-btn';
+                btn.innerText = num;
+                btn.onclick = () => handlePadInput(num);
+                pageDiv.appendChild(btn);
+            });
+
+            const btnRonny = document.createElement('button');
+            btnRonny.className = 'pad-btn btn-ronny';
+            btnRonny.innerText = 'RONNY (0)';
+            btnRonny.onclick = () => handlePadInput(0);
+            pageDiv.appendChild(btnRonny);
+
+            const btnUndo = document.createElement('button');
+            btnUndo.className = 'pad-btn btn-undo';
+            btnUndo.innerText = '⌫';
+            btnUndo.onclick = () => handleUndo();
+            pageDiv.appendChild(btnUndo);
+
+            viewport.appendChild(pageDiv);
+
+            const dot = document.createElement('div');
+            dot.className = `pad-dot ${pIdx === 0 ? 'active' : ''}`;
+            dots.appendChild(dot);
+        });
+
+        viewport.onscroll = () => {
+            const pageWidth = viewport.clientWidth;
+            if (pageWidth > 0) {
+                const activeIdx = Math.round(viewport.scrollLeft / pageWidth);
+                Array.from(dots.children).forEach((d, i) => {
+                    d.classList.toggle('active', i === activeIdx);
+                });
+            }
+        };
+    }
+
+    function handlePadInput(val) {
+        scores[activeCell.r][activeCell.c] = val;
+        saveState();
+        renderTable();
+        renderStats();
+        renderRaceTrack();
+        
+        advanceTurn();
+    }
+
+    function handleUndo() {
+        scores[activeCell.r][activeCell.c] = '';
+        saveState();
+        renderTable();
+        renderStats();
+        renderRaceTrack();
+        updateFocus();
+    }
+
+    function advanceTurn() {
+        const activePlayers = getActivePlayers();
+        const currentIndexInActive = activePlayers.findIndex(p => p.originalIndex === activeCell.c);
+        
+        if (currentIndexInActive < activePlayers.length - 1) {
+            activeCell.c = activePlayers[currentIndexInActive + 1].originalIndex;
+        } else {
+            if (activeCell.r < TOTAL_ROUNDS - 1) {
+                activeCell.r++;
+                activeCell.c = activePlayers[0].originalIndex;
+            }
+        }
+        updateFocus();
+    }
+
+    function toggleSetup() {
+        const s = document.getElementById('setupSection');
+        s.style.display = s.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleAnalysis() {
+        const a = document.getElementById('analysisGrid');
+        if (a.classList.contains('slide-hide')) {
+            renderAnalysis();
+            a.classList.remove('slide-hide');
+        } else {
+            a.classList.add('slide-hide');
+        }
+    }
+
+    function renderAnalysis() {
+        const grid = document.getElementById('analysisGrid');
+        const activePlayers = getActivePlayers();
+
+        grid.innerHTML = activePlayers.map(p => {
+            const c = p.originalIndex;
+            const playerScores = scores.map(row => parseInt(row[c])).filter(v => !isNaN(v));
+            
+            const count = playerScores.length;
+            const avg = count ? (playerScores.reduce((a,b) => a+b, 0) / count).toFixed(1) : 0;
+            const max = count ? Math.max(...playerScores) : 0;
+            const ronnys = playerScores.filter(v => v === 0).length;
+
+            return `
+                <div class="analysis-card">
+                    <strong style="color:var(--accent);">${p.name}</strong>
+                    <div style="font-size:0.75rem; margin-top:5px;">
+                        Ø Punkte: <b>${avg}</b><br>
+                        Höchste: <b>${max}</b><br>
+                        Ronnys (0er): <b style="color:var(--ronny);">${ronnys}</b>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleRaceTrack() {
+        const r = document.getElementById('raceTrack');
+        raceTrackVisible = !raceTrackVisible;
+        
+        if (raceTrackVisible) {
+            r.classList.add('slide-show');
+        } else {
+            r.classList.remove('slide-show');
+            hideRaceTrackOverlay();
+        }
+    }
+
+    function renderRaceTrack() {
+        const container = document.getElementById('raceTrack');
+        const activePlayers = getActivePlayers();
+
+        const trackHTML = activePlayers.map(p => {
+            const c = p.originalIndex;
+            const total = calculateTotal(c);
+            const progress = Math.min(100, Math.max(0, (total / GOAL_SCORE) * 100));
+
+            return `
+                <div class="race-lane" onclick="selectCell(${activeCell.r}, ${c})">
+                    <div class="race-name-field">${p.name}</div>
+                    <div class="race-track-path">
+                        <div class="race-horse-wrapper" style="left: ${progress}%;">
+                            <span class="race-horse-emoji mirror">🏇</span>
+                            <span class="race-horse-text">${total}</span>
+                        </div>
+                        <div class="race-finish-line">🏁</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = trackHTML;
+
+        const overlay = document.getElementById('raceTrackOverlay');
+        if (overlay) {
+            overlay.innerHTML = trackHTML;
+        }
+    }
+
+    function handleTableScroll() {
+        if (!isMobile || !raceTrackVisible) return;
+        
+        const raceTrack = document.getElementById('raceTrack');
+        if (!raceTrack) return;
+
+        const rect = raceTrack.getBoundingClientRect();
+        if (rect.bottom < 0) {
+            showRaceTrackOverlay();
+        } else {
+            hideRaceTrackOverlay();
+        }
+    }
+
+    function showRaceTrackOverlay() {
+        const overlay = document.getElementById('raceTrackOverlay');
+        if (overlay && raceTrackVisible) {
+            overlay.style.display = 'block';
+        }
+    }
+
+    function hideRaceTrackOverlay() {
+        const overlay = document.getElementById('raceTrackOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    function toggleMobileMode() {
+        isMobile = !isMobile;
+        document.body.classList.toggle('mobile-mode', isMobile);
+        saveState();
+        renderTable();
+        updateFocus();
+        updateLandscapePlayerCountClass();
+    }
+
+    function toggleTheme() {
+        isLight = !isLight;
+        document.body.classList.toggle('light-mode', isLight);
+        saveState();
+    }
+
+    function resetAll() {
+        if (confirm("Wirklich das gesamte Spiel zurücksetzen?")) {
+            scores = Array(TOTAL_ROUNDS).fill(null).map(() => Array(MAX_PLAYERS).fill(''));
+            activeCell = { r: 0, c: starterIndex };
+            saveState();
+            renderTable();
+            renderStats();
+            renderRaceTrack();
+            updateFocus();
+        }
+    }
+
+    function finishGame() {
+        let maxScore = -1;
+        let winnerIdx = -1;
+
+        getActivePlayers().forEach(p => {
+            const c = p.originalIndex;
+            const total = calculateTotal(c);
+            if (total > maxScore) {
+                maxScore = total;
+                winnerIdx = c;
+            }
+        });
+
+        if (winnerIdx !== -1) {
+            players[winnerIdx].wins++;
+            alert(`🏆 Herzlichen Glückwunsch ${players[winnerIdx].name}! Gewonnen mit ${maxScore} Punkten!`);
+            
+            saveHistory(players[winnerIdx].name, maxScore);
+            saveState();
+            renderStats();
+        }
+    }
+
+    function saveHistory(winnerName, score) {
+        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
+        hist.unshift({
+            date: new Date().toLocaleString(),
+            winner: winnerName,
+            score: score,
+            scores: JSON.parse(JSON.stringify(scores)),
+            players: JSON.parse(JSON.stringify(players))
+        });
+        localStorage.setItem('wb_history', JSON.stringify(hist));
+    }
+
+    function showHistory() {
+        const view = document.getElementById('histView');
+        const list = document.getElementById('histList');
+        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
+
+        list.innerHTML = hist.map((item, idx) => `
+            <div class="history-item">
+                <div>
+                    <strong>${item.date}</strong><br>
+                    Gewinner: <span style="color:var(--locked);">${item.winner}</span> (${item.score} Pkt)
+                </div>
+                <button class="btn-load-hist" onclick="loadHistoryItem(${idx})">Laden</button>
+            </div>
+        `).join('');
+
+        view.style.display = 'block';
+    }
+
+    function hideHistory() {
+        document.getElementById('histView').style.display = 'none';
+    }
+
+    function loadHistoryItem(idx) {
+        let hist = JSON.parse(localStorage.getItem('wb_history')) || [];
+        if (hist[idx]) {
+            scores = hist[idx].scores;
+            players = hist[idx].players;
+            saveState();
+            renderStats();
+            renderSetup();
+            renderTable();
+            renderRaceTrack();
+            hideHistory();
+            updateFocus();
+        }
+    }
+
     function openChangelog() {
         document.getElementById('changelogModal').style.display = 'flex';
     }
@@ -518,6 +1092,8 @@
     function closeChangelog() {
         document.getElementById('changelogModal').style.display = 'none';
     }
+
+    window.onload = init;
 </script>
 
 </body>
