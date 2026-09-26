@@ -311,13 +311,13 @@
         .score-input.system-focus { 
             box-shadow: inset 0 0 0 3px var(--accent); 
             font-weight: bold; 
-            animation: activeCellGlow 5s ease-in-out infinite;
+            animation: activeCellGlow 4s ease-in-out infinite;
         }
 
         @keyframes activeCellGlow {
             0% { background-color: transparent; }
-            20% { background-color: var(--accent); }
-            40% { background-color: transparent; }
+            25% { background-color: var(--accent); }
+            50% { background-color: transparent; }
             100% { background-color: transparent; }
         }
         
@@ -490,6 +490,7 @@
             <li>Automatischer Wechsel des Zahlenpads von Seite 2 und 3 zu Seite 1 bei Betätigung</li>
             <li>Fehler beim Zählen von Siegen bei Unentschieden behoben</li>
             <li>Fehler bei Tönen behoben (stellenweise doppelte Ausgabe)</li>
+            <li>Blinken in aktiver Zelle hinzugefügt</li>
         </ul>
         <label class="dont-show-again">
             <input type="checkbox" id="chkHideChangelog">
