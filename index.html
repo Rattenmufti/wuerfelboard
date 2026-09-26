@@ -67,7 +67,11 @@
         }
         body.mobile-mode .pad-btn { padding: 15px 0 !important; font-size: 1rem !important; }
         body.mobile-mode .btn-ronny { 
-            grid-column: 1 / -1 !important; 
+            grid-column: span 3 !important; 
+            padding: 15px 0 !important; 
+        }
+        body.mobile-mode .btn-undo { 
+            grid-column: span 1 !important; 
             padding: 15px 0 !important; 
         }
         
@@ -158,7 +162,11 @@
                 font-size: 0.9rem !important;
             }
             body.mobile-mode .btn-ronny {
-                grid-column: 1 / -1 !important;
+                grid-column: span 2 !important;
+                padding: 10px 0 !important;
+            }
+            body.mobile-mode .btn-undo {
+                grid-column: span 1 !important;
                 padding: 10px 0 !important;
             }
 
@@ -261,6 +269,16 @@
 
         .btn-top { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
         
+        /* Header Button Blöcke */
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
         .stats-section { background: var(--table-head); color: white; padding: 8px; border-radius: 10px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; flex-shrink: 0; }
         .stat-item { border-right: 1px solid #444; display: flex; flex-direction: column; }
         .stat-name { font-size: 0.6rem; color: #888; }
@@ -314,10 +332,13 @@
 
         .pad-btn { padding: 0 2px; border: none; border-radius: 8px; background: #34495e; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
         .pad-btn:disabled { background: #555; color: var(--locked); }
-        .btn-ronny { background: var(--ronny) !important; grid-column: span 4; padding: 0; }
-        body.mobile-mode .btn-ronny { grid-column: span 4 !important; }
+        .btn-ronny { background: var(--ronny) !important; grid-column: span 3; padding: 0; }
+        .btn-undo { background: #7f8c8d !important; grid-column: span 1; padding: 0; font-size: 1.4rem; }
+        body.mobile-mode .btn-ronny { grid-column: span 3 !important; }
+        body.mobile-mode .btn-undo { grid-column: span 1 !important; }
         @media (orientation: landscape) {
-            body.mobile-mode .btn-ronny { grid-column: span 3 !important; }
+            body.mobile-mode .btn-ronny { grid-column: span 2 !important; }
+            body.mobile-mode .btn-undo { grid-column: span 1 !important; }
         }
         
         .score-box { display: flex; flex-direction: column; line-height: 1.1; height: 100%; justify-content: center; }
@@ -452,17 +473,22 @@
                 <span id="battery-display">🔋 67%</span>
             </div>
         </div>
-        <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
-            <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
-            <button class="btn-top" onclick="saveCSV()">💾 BACKUP</button>
-            <button class="btn-top" onclick="document.getElementById('csvIn').click()">📂 LADEN</button>
-            <button id="btnViewToggle" class="btn-top" onclick="toggleMobile()">📱 MOBIL</button>
-            <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🐎 RENNEN</button>
-            
-            <button class="btn-top" onclick="toggleTheme()">🌓 MODE</button>
-            <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
-            <button class="btn-top" onclick="finishCheck()" style="background:var(--win)">✨ NEU</button>
-            <button class="btn-top" onclick="askMasterReset()" style="background:#555">🔄 RESET</button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+            <div class="btn-group">
+                <button class="btn-top" onclick="saveCSV()">💾 BACKUP</button>
+                <button class="btn-top" onclick="document.getElementById('csvIn').click()">📂 LADEN</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
+                <button id="btnViewToggle" class="btn-top" onclick="toggleMobile()">📱 MOBIL</button>
+                <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🐎 RENNEN</button>
+                <button class="btn-top" onclick="toggleTheme()">🌓 MODE</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
+                <button class="btn-top" onclick="finishCheck()" style="background:var(--win)">✨ NEU</button>
+                <button class="btn-top" onclick="askMasterReset()" style="background:#555">🔄 RESET</button>
+            </div>
         </div>
     </div>
 
@@ -484,6 +510,7 @@
             <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
                 <div class="pad-page" id="padPage1">
                     <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
+                    <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
                 </div>
                 <div class="pad-page" id="padPage2"></div>
                 <div class="pad-page" id="padPage3"></div>
@@ -559,6 +586,8 @@
     let isArcView = false, arcScores = [], arcNames = [], isQuickPress = false, isLocked = false;
     let focus = { r: 0, pI: 0, apIdx: 0 }; 
     let currentPickerPlayerIdx = null; 
+    let undoHistory = [];
+    let autoPageReturnTimer = null;
     
     let playedUnder1000 = Array(MAX_P).fill(false);
     let playedWinnerSound = Array(MAX_P).fill(false);
@@ -775,16 +804,60 @@
         const buttons = document.querySelectorAll('.pad-btn');
         buttons.forEach(b => b.disabled = true);
         
+        undoHistory.push({
+            scores: JSON.parse(JSON.stringify(scores)),
+            focus: { ...focus }
+        });
+        if (undoHistory.length > 3) {
+            undoHistory.shift();
+        }
+
         const soundFile = (v === 0) ? 'und-weg.mp3' : 'punkte.mp3';
         playCustomAudio(soundFile);
 
         scores[focus.r][focus.pI] = v.toString(); 
         isQuickPress = true;
         render(); 
+
+        const vp = document.getElementById('padViewport');
+        if (vp) {
+            const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+            if (pageIdx > 0) {
+                if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
+                autoPageReturnTimer = setTimeout(() => {
+                    vp.scrollTo({ left: 0, behavior: 'smooth' });
+                }, 1000);
+            }
+        }
+
         setTimeout(() => { 
             jumpToNext(); 
             isLocked = false; 
             buttons.forEach(b => b.disabled = false); 
+        }, 500);
+    }
+
+    function undoMove() {
+        if (isArcView || isLocked || undoHistory.length === 0) return;
+        isLocked = true;
+        const buttons = document.querySelectorAll('.pad-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const lastState = undoHistory.pop();
+        scores = JSON.parse(JSON.stringify(lastState.scores));
+        focus = { ...lastState.focus };
+        
+        save();
+        render();
+
+        setTimeout(() => {
+            const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
+            if (el) {
+                el.focus();
+                scrollCheck(el);
+            }
+            isLocked = false;
+            buttons.forEach(b => b.disabled = false);
         }, 500);
     }
 
@@ -1138,6 +1211,7 @@
                 const d = JSON.parse(ev.target.result); 
                 pNames=d.pNames; scores=d.scores; archive=d.archive; startIdx=d.startIdx; 
                 if(d.pEmojis) pEmojis=d.pEmojis; 
+                undoHistory = [];
                 save(); render(); 
             } catch(err) { 
                 openAlert("Fehler", "Die Datei konnte nicht als gültiges Backup geladen werden!"); 
@@ -1255,6 +1329,7 @@
     function finishGame(winText) {
         archive.unshift({ d: new Date().toLocaleString(), w: winText, s: JSON.parse(JSON.stringify(scores)), names: JSON.parse(JSON.stringify(pNames)) });
         scores = [Array(MAX_P).fill("")]; 
+        undoHistory = [];
         
         playCustomAudio('neue-runde.mp3');
         
