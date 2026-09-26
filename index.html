@@ -68,11 +68,9 @@
         body.mobile-mode .pad-btn { padding: 15px 0 !important; font-size: 1rem !important; }
         body.mobile-mode .btn-ronny { 
             grid-column: span 3 !important; 
-            padding: 15px 0 !important; 
         }
         body.mobile-mode .btn-undo { 
             grid-column: span 1 !important; 
-            padding: 15px 0 !important; 
         }
         
         body.mobile-mode .table-area { 
@@ -163,11 +161,9 @@
             }
             body.mobile-mode .btn-ronny {
                 grid-column: span 2 !important;
-                padding: 10px 0 !important;
             }
             body.mobile-mode .btn-undo {
                 grid-column: span 1 !important;
-                padding: 10px 0 !important;
             }
 
             body.mobile-mode .table-area {
@@ -212,7 +208,6 @@
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
         
-        /* DESKTOP MODUS: Akku- & Uhranzeige mittig in der Zeile */
         body:not(.mobile-mode) .header-left {
             display: flex;
             align-items: center;
@@ -233,7 +228,6 @@
             border: 1px solid var(--border);
         }
 
-        /* MOBILE ANSICHTEN: Akku- & Uhranzeige auf der rechten Seite */
         body.mobile-mode .header-left {
             display: flex;
             align-items: center;
@@ -255,7 +249,6 @@
             border: 1px solid var(--border);
         }
 
-        /* MOBILE LANDSCAPE: Begrenzung vor der Pad-Reihen-Breite gegen Überlappung */
         @media (orientation: landscape) {
             body.mobile-mode.few-players .header-left {
                 max-width: calc(100vw - 280px);
@@ -269,7 +262,6 @@
 
         .btn-top { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
         
-        /* Header Button Blöcke */
         .btn-group {
             display: flex;
             gap: 5px;
@@ -314,26 +306,40 @@
         .score-input { width: 100%; height: 100%; border: none; text-align: center; font-size: 1.1rem; background: transparent; color: var(--text); outline: none; }
         .score-input.system-focus { background: var(--input-focus); box-shadow: inset 0 0 0 3px var(--accent); font-weight: bold; }
         
-        /* --- PAD SEITEN ARCHITEKTUR --- */
+        /* --- PAD SEITEN ARCHITEKTUR (EXAKT DIESELBEN GRID-REIHEN FÜR ALLE SEITEN) --- */
         .quick-pad { width: 450px; flex-shrink: 0; align-self: stretch; height: 100%; position: relative; }
         .pad-viewport { width: 100%; height: calc(100% - 15px); overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
         .pad-viewport::-webkit-scrollbar { display: none; }
         .pad-viewport { -ms-overflow-style: none; scrollbar-width: none; }
-        .pad-page { min-width: 100%; width: 100%; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; box-sizing: border-box; }
-        body.mobile-mode .pad-page { grid-template-columns: repeat(4, 1fr) !important; }
+        .pad-page { 
+            min-width: 100%; width: 100%; height: 100%; 
+            scroll-snap-align: start; scroll-snap-stop: always; 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            grid-template-rows: repeat(6, 1fr); 
+            gap: 8px; 
+            box-sizing: border-box; 
+        }
+        body.mobile-mode .pad-page { 
+            grid-template-columns: repeat(4, 1fr) !important; 
+            grid-template-rows: repeat(6, 1fr) !important; 
+        }
         body.mobile-mode .pad-viewport { height: auto !important; }
         @media (orientation: landscape) {
-            body.mobile-mode .pad-page { grid-template-columns: repeat(3, 1fr) !important; }
+            body.mobile-mode .pad-page { 
+                grid-template-columns: repeat(3, 1fr) !important; 
+                grid-template-rows: repeat(8, 1fr) !important;
+            }
             body.mobile-mode .pad-viewport { height: calc(100% - 15px) !important; overflow-y: auto; }
         }
         .pad-dots { display: flex; justify-content: center; gap: 6px; margin-top: 5px; height: 10px; align-items: center; }
         .pad-dot { width: 6px; height: 6px; background: #555; border-radius: 50%; transition: 0.2s; }
         .pad-dot.active { background: var(--accent); width: 8px; height: 8px; }
 
-        .pad-btn { padding: 0 2px; border: none; border-radius: 8px; background: #34495e; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer; }
+        .pad-btn { padding: 0 2px; border: none; border-radius: 8px; background: #34495e; color: white; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; box-sizing: border-box; }
         .pad-btn:disabled { background: #555; color: var(--locked); }
-        .btn-ronny { background: var(--ronny) !important; grid-column: span 3; padding: 0; }
-        .btn-undo { background: #7f8c8d !important; grid-column: span 1; padding: 0; font-size: 1.4rem; }
+        .btn-ronny { background: var(--ronny) !important; grid-column: span 3; }
+        .btn-undo { background: #7f8c8d !important; grid-column: span 1; font-size: 1.4rem; }
         body.mobile-mode .btn-ronny { grid-column: span 3 !important; }
         body.mobile-mode .btn-undo { grid-column: span 1 !important; }
         @media (orientation: landscape) {
@@ -414,7 +420,6 @@
         }
         .emoji-select-btn:hover { background: var(--accent); transform: scale(1.1); }
 
-        /* --- CUSTOM MODALS SYSTEM (v0.9855) --- */
         .custom-modal-backdrop {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--modal-backdrop); z-index: 4000;
@@ -535,7 +540,6 @@
 <input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
 
 <script>
-    /* --- CUSTOM DIALOG ENGINE --- */
     function openAlert(title, text) {
         document.getElementById('customModalTitle').innerText = title;
         document.getElementById('customModalText').innerText = text;
@@ -608,7 +612,6 @@
         document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
     }
 
-    // Audio-Objekte einmal zentral verwalten
     const audioCache = {};
 
     function playCustomAudio(filename) {
@@ -1359,6 +1362,10 @@
         }
     }, { passive: true });
 
+    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
+    
+    // SEITE 1: 0 (3 Felder) + Undo (1 Feld) = 4 Felder (Reihe 1). 
+    // Dazu 20 Nummern (350 bis 1300) = 5 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
     const page1 = document.getElementById('padPage1');
     for(let v=350; v<=1300; v+=50) { 
         const b = document.createElement('button'); 
@@ -1368,6 +1375,7 @@
         page1.appendChild(b); 
     }
 
+    // SEITE 2: 24 Nummern (1350 bis 2500) = 6 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
     const page2 = document.getElementById('padPage2');
     for(let v=1350; v<=2500; v+=50) { 
         const b = document.createElement('button'); 
@@ -1377,6 +1385,7 @@
         page2.appendChild(b); 
     }
 
+    // SEITE 3: 24 Nummern (2550 bis 3700) = 6 Reihen à 4 Felder. Gesamtsumme = 24 Felder (6 Reihen).
     const page3 = document.getElementById('padPage3');
     for(let v=2550; v<=3700; v+=50) { 
         const b = document.createElement('button'); 
