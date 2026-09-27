@@ -132,6 +132,51 @@
         body.mobile-mode .race-track-sticky-overlay .race-horse-emoji { font-size: 1.8rem !important; }
         body.mobile-mode .race-track-sticky-overlay .race-horse-text { font-size: 0.7rem !important; }
 
+        /* --- PAUSE OVERLAY STYLES --- */
+        .pause-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            cursor: pointer;
+        }
+        .pause-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .pause-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(230, 126, 34, 0.8);
+            letter-spacing: 4px;
+            animation: pulsePause 2s infinite ease-in-out;
+            user-select: none;
+        }
+        .pause-subtext {
+            font-size: 1rem;
+            color: #ffffff;
+            margin-top: 15px;
+            opacity: 0.8;
+            user-select: none;
+        }
+        @keyframes pulsePause {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 0.4; }
+        }
+
         /* --- MOBILE LANDSCAPE TUNING --- */
         @media (orientation: landscape) {
             body.mobile-mode .app {
@@ -569,6 +614,11 @@
 </head>
 <body id="mainBody">
 
+<div id="pauseOverlay" class="pause-overlay" onclick="resumeFromPause()">
+    <div class="pause-text">PAUSE</div>
+    <div class="pause-subtext">Klicke irgendwo hin, um fortzufahren</div>
+</div>
+
 <div id="raceTrackStickyCopy" class="race-track-sticky-overlay"></div>
 
 <div id="customModal" class="custom-modal-backdrop">
@@ -797,6 +847,13 @@
     let autoEndTimer = null;
     let pendingEndGame = false;
     let matchEndChartInstances = [];
+
+    // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
+    let gameActive = getSafe('10k_gameActive', false);
+    let accumulatedTimeMs = getSafe('10k_accumulatedTimeMs', 0);
+    let currentTurnStartTime = getSafe('10k_currentTurnStartTime', null);
+    let inactivityTimer = null;
+    let isPaused = false;
     
     let playedUnder1000 = Array(MAX_P).fill(false);
     let playedWinnerSound = Array(MAX_P).fill(false);
@@ -857,7 +914,6 @@
     let startIdx = getSafe('10k_startIdx', 0);
     let theme = getSafe('10k_theme', 'dark');
     let showRace = getSafe('10k_showRace', false);
-    let gameStartTime = getSafe('10k_gameStartTime', Date.now());
     
     let pEmojis = getSafe('10k_emojis', Array(MAX_P).fill("🐎"));
     
@@ -868,9 +924,79 @@
     if(viewMode === 'mobile') document.body.classList.add('mobile-mode');
     updateToggleButtonText();
 
+    function startTimerIfNeeded() {
+        if (!gameActive) {
+            gameActive = true;
+            accumulatedTimeMs = 0;
+            currentTurnStartTime = Date.now();
+            localStorage.setItem('10k_gameActive', true);
+            localStorage.setItem('10k_accumulatedTimeMs', 0);
+            localStorage.setItem('10k_currentTurnStartTime', currentTurnStartTime);
+        } else if (isPaused) {
+            resumeFromPause();
+        }
+        resetInactivityTimer();
+    }
+
+    function stopTimerAndGetDuration() {
+        let total = accumulatedTimeMs;
+        if (gameActive && currentTurnStartTime && !isPaused) {
+            total += (Date.now() - currentTurnStartTime);
+        }
+        gameActive = false;
+        currentTurnStartTime = null;
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        localStorage.setItem('10k_gameActive', false);
+        localStorage.setItem('10k_accumulatedTimeMs', total);
+        localStorage.removeItem('10k_currentTurnStartTime');
+        
+        return total;
+    }
+
+    function resetInactivityTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (gameActive && !isPaused) {
+            inactivityTimer = setTimeout(() => {
+                triggerPause();
+            }, 120000); // 2 Minuten Inaktivität
+        }
+    }
+
+    function triggerPause() {
+        if (!gameActive || isPaused) return;
+        isPaused = true;
+        if (currentTurnStartTime) {
+            accumulatedTimeMs += (Date.now() - currentTurnStartTime);
+            currentTurnStartTime = null;
+            localStorage.setItem('10k_accumulatedTimeMs', accumulatedTimeMs);
+            localStorage.removeItem('10k_currentTurnStartTime');
+        }
+        document.getElementById('pauseOverlay').classList.add('active');
+    }
+
+    function resumeFromPause() {
+        if (!isPaused) return;
+        isPaused = false;
+        if (gameActive) {
+            currentTurnStartTime = Date.now();
+            localStorage.setItem('10k_currentTurnStartTime', currentTurnStartTime);
+        }
+        document.getElementById('pauseOverlay').classList.remove('active');
+        resetInactivityTimer();
+    }
+
     function resetGameTimer() {
-        gameStartTime = Date.now();
-        localStorage.setItem('10k_gameStartTime', gameStartTime);
+        gameActive = false;
+        accumulatedTimeMs = 0;
+        currentTurnStartTime = null;
+        isPaused = false;
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        document.getElementById('pauseOverlay').classList.remove('active');
+        
+        localStorage.setItem('10k_gameActive', false);
+        localStorage.setItem('10k_accumulatedTimeMs', 0);
+        localStorage.removeItem('10k_currentTurnStartTime');
     }
 
     function sanitizeOldNames(text) {
@@ -932,7 +1058,7 @@
         });
     }
 
-    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); localStorage.setItem('10k_gameStartTime', gameStartTime); } }
+    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); } }
     
     function toggleMobile() { 
         viewMode = (viewMode === 'desktop' ? 'mobile' : 'desktop'); 
@@ -1010,6 +1136,9 @@
 
     function setV(v) { 
         if(isArcView || isLocked) return; 
+        
+        startTimerIfNeeded();
+
         if (focus.pI === undefined || focus.r === undefined) {
             const sorted = getSortedActive();
             focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
@@ -1207,6 +1336,7 @@
                 inp.onkeydown = (e) => { if(e.key === "Enter" || e.key === "Tab") { e.preventDefault(); isQuickPress = false; jumpToNext(); } };
                 inp.oninput = (e) => { 
                     if(!isArcView) { 
+                        startTimerIfNeeded();
                         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                         pendingEndGame = false;
                         scores[rIdx][p.i] = e.target.value; 
@@ -1431,6 +1561,8 @@
     }
 
     function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
+        stopTimerAndGetDuration();
+
         let maxScore = Math.max(...playerTotals.map(item => item.tot));
         let winners = playerTotals.filter(item => item.tot === maxScore);
 
@@ -1674,6 +1806,7 @@
                 undoHistory = [];
                 if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
+                resetGameTimer();
                 save(); render(); 
             } catch(err) { 
                 openAlert("Fehler", "Die Datei konnte nicht als gültiges Backup geladen werden!"); 
@@ -1794,8 +1927,7 @@
         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
         pendingEndGame = false;
 
-        const now = Date.now();
-        const durationMs = now - (gameStartTime || now);
+        const durationMs = stopTimerAndGetDuration();
 
         archive.unshift({ 
             d: new Date().toLocaleString(), 
@@ -2060,6 +2192,17 @@
         }
     }, { passive: true });
 
+    // Globale Aktivitätstracking für Inaktivitäts-Timer
+    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (isPaused) {
+                resumeFromPause();
+            } else {
+                resetInactivityTimer();
+            }
+        }, { passive: true });
+    });
+
     /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
     
     const page1 = document.getElementById('padPage1');
@@ -2100,8 +2243,11 @@
         }
 
         const elapsedElem = document.getElementById('elapsed-display');
-        if (elapsedElem && gameStartTime) {
-            const diffMs = Math.max(0, now.getTime() - gameStartTime);
+        if (elapsedElem) {
+            let diffMs = accumulatedTimeMs;
+            if (gameActive && currentTurnStartTime && !isPaused) {
+                diffMs += (now.getTime() - currentTurnStartTime);
+            }
             const totalSec = Math.floor(diffMs / 1000);
             const eHours = Math.floor(totalSec / 3600);
             const eMinutes = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
