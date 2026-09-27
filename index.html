@@ -581,7 +581,7 @@
 
 <div id="changelogModal" class="custom-modal-backdrop">
     <div class="custom-modal-content" style="max-width: 450px;">
-        <div class="custom-modal-title">Was ist neu in v0.99? 🚀</div>
+        <div class="custom-modal-title">Was ist neu in v0.992? 🚀</div>
         <ul class="changelog-list">
             <li>Akkuanzeige hinzugefügt (nur Android)</li>
             <li>Uhrzeit hinzugefügt (nur Android)</li>
@@ -618,7 +618,7 @@
 
     <div class="header-bar">
         <div class="header-left">
-            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.99 Stable</h2>
+            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.992 Stable</h2>
             <div id="status-bar" class="header-status">
                 <span id="time-display">13:52</span>
                 <span id="battery-display">🔋 67%</span>
@@ -686,7 +686,29 @@
 <input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
 
 <script>
-    const APP_VERSION = "0.99";
+    const APP_VERSION = "0.992";
+
+    // AUTOMATISCHER GITHUB-VERSIONSABGLEICH
+    async function checkForUpdates() {
+        const githubVersionUrl = 'https://raw.githubusercontent.com/Rattenmufti/wuerfelboard/main/version.json';
+        try {
+            const response = await fetch(githubVersionUrl, { cache: "no-store" });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (data.version && data.version !== APP_VERSION) {
+                openConfirm(
+                    "Update verfügbar! 🚀",
+                    `Eine neue Version (${data.version}) ist verfügbar.\n\nMöchtest du die Seite jetzt neu laden, um die neueste Version zu nutzen?`,
+                    () => {
+                        location.reload(true);
+                    }
+                );
+            }
+        } catch (err) {
+            console.log("Versionsabgleich fehlgeschlagen oder offline:", err);
+        }
+    }
 
     function checkChangelog() {
         const hideVersion = localStorage.getItem('10k_hide_changelog');
@@ -1849,6 +1871,7 @@
 
     render();
     checkChangelog();
+    checkForUpdates();
 </script>
 </body>
 </html>
