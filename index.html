@@ -1861,6 +1861,9 @@
         let highestSingleTurn = { score: 0, player: "", date: "" };
         let gameWithMostRonnys = { ronnys: 0, date: "" };
         
+        let longestRonnyStreak = { count: 0, player: "", date: "" };
+        let longestNoRonnyStreak = { count: 0, player: "", date: "" };
+        
         let playerStatsMap = {};
 
         archive.forEach(g => {
@@ -1881,6 +1884,10 @@
             let currentGameRonnys = 0;
             let gameNames = g.names || pNames;
 
+            // Für Streaks pro Spieler in DIESEM Spiel
+            let currentRonnyStreaksInGame = {};
+            let currentNoRonnyStreaksInGame = {};
+
             g.s.forEach((row, rIdx) => {
                 row.forEach((valStr, pIdx) => {
                     let pName = sanitizeOldNames(gameNames[pIdx]);
@@ -1889,6 +1896,8 @@
                     if (!playerStatsMap[pName]) {
                         playerStatsMap[pName] = { totalPoints: 0, ronnys: 0, turns: 0 };
                     }
+                    if (currentRonnyStreaksInGame[pName] === undefined) currentRonnyStreaksInGame[pName] = 0;
+                    if (currentNoRonnyStreaksInGame[pName] === undefined) currentNoRonnyStreaksInGame[pName] = 0;
 
                     let val = parseInt(valStr);
                     if (!isNaN(val)) {
@@ -1900,10 +1909,25 @@
                             totalRonnysGlobal++;
                             currentGameRonnys++;
                             playerStatsMap[pName].ronnys++;
-                        }
 
-                        if (val > highestSingleTurn.score) {
-                            highestSingleTurn = { score: val, player: pName, date: g.d };
+                            // Ronny Streak erhöhen & No-Ronny resetten
+                            currentRonnyStreaksInGame[pName]++;
+                            if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
+                                longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], player: pName, date: g.d };
+                            }
+                            currentNoRonnyStreaksInGame[pName] = 0;
+
+                        } else {
+                            // Punkte gewürfelt: Ronny Streak resetten & No-Ronny erhöhen
+                            currentRonnyStreaksInGame[pName] = 0;
+                            currentNoRonnyStreaksInGame[pName]++;
+                            if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
+                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], player: pName, date: g.d };
+                            }
+
+                            if (val > highestSingleTurn.score) {
+                                highestSingleTurn = { score: val, player: pName, date: g.d };
+                            }
                         }
                     }
                 });
@@ -1917,15 +1941,23 @@
         let ronnyKing = { name: "-", count: 0 };
         let pointsKing = { name: "-", points: 0 };
         let bestAvgPlayer = { name: "-", avg: 0 };
+        let highestRonnyPercentage = { name: "-", pct: 0 };
+        let mostTurnsPlayer = { name: "-", turns: 0 };
 
         Object.keys(playerStatsMap).forEach(pName => {
             let pData = playerStatsMap[pName];
             if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
             if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
+            if (pData.turns > mostTurnsPlayer.turns) mostTurnsPlayer = { name: pName, turns: pData.turns };
             
             let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
             if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
                 bestAvgPlayer = { name: pName, avg: avg };
+            }
+
+            let ronnyPct = pData.turns > 0 ? Math.round((pData.ronnys / pData.turns) * 100) : 0;
+            if (ronnyPct > highestRonnyPercentage.pct && pData.turns >= 10) {
+                highestRonnyPercentage = { name: pName, pct: ronnyPct };
             }
         });
 
@@ -1941,13 +1973,18 @@
             <div class="analysis-card" style="border-top-color: #e74c3c;">
                 <div style="font-weight:bold; color:#e74c3c; margin-bottom:8px;">🤡 Ronny-Museum (Nuller)</div>
                 <div style="font-size:0.9rem;">👑 <b>Ewiger Ronny-König:</b> ${ronnyKing.name} (${ronnyKing.count} mal 0)</div>
+                <div style="font-size:0.9rem; margin-top:4px;">📉 <b>Meiste Ronnys am Stück:</b> ${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:4px;">(${longestRonnyStreak.player} am ${longestRonnyStreak.date})</div>
+                <div style="font-size:0.9rem;">🔥 <b>Höchste Ronny-Quote:</b> ${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}% Nuller)</div>
                 <div style="font-size:0.9rem; margin-top:4px;">🌐 <b>Ronnys Insgesamt:</b> ${totalRonnysGlobal} Stück</div>
                 <div style="font-size:0.9rem; margin-top:4px;">💥 <b>Meiste Ronnys in 1 Partie:</b> ${gameWithMostRonnys.ronnys} Stück</div>
                 <div style="font-size:0.75rem; color:#aaa;">(${gameWithMostRonnys.date})</div>
             </div>
 
             <div class="analysis-card" style="border-top-color: #2ecc71;">
-                <div style="font-weight:bold; color:#2ecc71; margin-bottom:8px;">🎲 Runden & Würfe</div>
+                <div style="font-weight:bold; color:#2ecc71; margin-bottom:8px;">🎲 Serien & Lauf</div>
+                <div style="font-size:0.9rem;">🍀 <b>Längste Serie ohne Ronny:</b> ${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${longestNoRonnyStreak.player} am ${longestNoRonnyStreak.date})</div>
                 <div style="font-size:0.9rem;">🚀 <b>Kürzeste Partie:</b> ${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</div>
                 <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
                 <div style="font-size:0.9rem;">🐘 <b>Längste Partie:</b> ${mostRoundsGame.rounds} Runden</div>
@@ -1961,6 +1998,7 @@
                 <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(von ${highestSingleTurn.player} am ${highestSingleTurn.date})</div>
                 <div style="font-size:0.9rem;">🏆 <b>Punkte-König (Gesamt):</b> ${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</div>
                 <div style="font-size:0.9rem; margin-top:4px;">🎯 <b>Bester Schnitt/Runde:</b> ${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</div>
+                <div style="font-size:0.9rem; margin-top:4px;">🐝 <b>Fleißigste Arbeitsbiene:</b> ${mostTurnsPlayer.name} (${mostTurnsPlayer.turns} Würfe)</div>
                 <div style="font-size:0.9rem; margin-top:4px;">💰 <b>Gewürfelte Punkte Global:</b> ${totalPointsGlobal.toLocaleString()} Pkt.</div>
             </div>
         `;
