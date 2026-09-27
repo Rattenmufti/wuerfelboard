@@ -1768,6 +1768,7 @@
     }
 
     function finishGame(winText) {
+        checkForUpdates();
         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
         pendingEndGame = false;
         archive.unshift({ d: new Date().toLocaleString(), w: winText, s: JSON.parse(JSON.stringify(scores)), names: JSON.parse(JSON.stringify(pNames)) });
