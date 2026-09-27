@@ -466,7 +466,78 @@
         body.mobile-mode .race-horse-emoji { font-size: 1.8rem !important; } 
         body.mobile-mode .race-horse-text { font-size: 0.7rem !important; }
 
-        #histView, #nerdStatsView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
+        #histView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
+        
+        /* --- MODERNE, OVERLAY-BASIERTE NERD STATISTIK (CLEAN & ERWACHSEN) --- */
+        #nerdStatsView { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 3000; display: flex; justify-content: center; align-items: center; 
+            padding: 15px; box-sizing: border-box; 
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        #nerdStatsView.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .nerd-stats-container {
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 14px; 
+            max-width: 900px; width: 100%; max-height: 90vh; 
+            display: flex; flex-direction: column; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); 
+            overflow: hidden;
+            transform: scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #nerdStatsView.active .nerd-stats-container {
+            transform: scale(1);
+        }
+        .nerd-stats-header {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 18px; background: rgba(0, 0, 0, 0.25); 
+            border-bottom: 1px solid var(--border);
+        }
+        .nerd-stats-title {
+            color: var(--accent); margin: 0; font-size: 1.1rem; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nerd-stats-close-btn {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border);
+            color: var(--text); width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.15s;
+        }
+        .nerd-stats-close-btn:hover {
+            background: var(--ronny); color: #fff; border-color: transparent;
+        }
+        .nerd-stats-body {
+            padding: 16px; overflow-y: auto; flex: 1;
+        }
+        .nerd-card-clean {
+            background: rgba(0, 0, 0, 0.2); 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            padding: 12px 14px; 
+            box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .nerd-card-header {
+            font-weight: bold; font-size: 0.85rem; color: var(--accent); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+            padding-bottom: 5px; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .nerd-stat-row {
+            display: flex; justify-content: space-between; align-items: baseline; 
+            font-size: 0.82rem; line-height: 1.3;
+        }
+        .nerd-stat-label { color: rgba(255, 255, 255, 0.7); }
+        .nerd-stat-val { font-weight: 700; color: var(--text); text-align: right; }
+        .nerd-stat-sub { font-size: 0.7rem; color: rgba(255, 255, 255, 0.4); margin-top: -2px; }
+
         .history-item { background:#333; padding:8px 12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:white; font-size: 0.85rem; border-left: 4px solid var(--accent); }
         .btn-load-hist { background:var(--win); border:none; color:white; padding:6px 10px; border-radius:4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
 
@@ -738,13 +809,15 @@
     <div id="arcList"></div>
 </div>
 
-<div id="nerdStatsView">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;">
-        <h2 style="color:var(--accent); margin:0; font-size: 1.4rem;">🤓 Nerd-Statistik (Ewige Daten)</h2>
-        <button class="btn-top" onclick="document.getElementById('nerdStatsView').style.display='none'" style="background:var(--ronny); padding: 5px 15px; font-size: 1rem;">X</button>
-    </div>
-    <div id="nerdStatsContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; color: white;">
-        <!-- Dynamische Inhalte -->
+<div id="nerdStatsView" onclick="closeNerdStats(event)">
+    <div class="nerd-stats-container" onclick="event.stopPropagation()">
+        <div class="nerd-stats-header">
+            <h2 class="nerd-stats-title">🤓 Nerd-Statistik (Ewige Daten)</h2>
+            <button class="nerd-stats-close-btn" onclick="closeNerdStats()">✕</button>
+        </div>
+        <div class="nerd-stats-body" id="nerdStatsContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+            <!-- Dynamische Inhalte -->
+        </div>
     </div>
 </div>
 
@@ -1968,14 +2041,20 @@
         return `${seconds}s`;
     }
 
+    function closeNerdStats(e) {
+        if (e && e.target !== e.currentTarget && !e.target.classList.contains('nerd-stats-close-btn')) return;
+        const view = document.getElementById('nerdStatsView');
+        view.classList.remove('active');
+    }
+
     function openNerdStats() {
         document.getElementById('histView').style.display = 'none';
         const view = document.getElementById('nerdStatsView');
         const content = document.getElementById('nerdStatsContent');
-        view.style.display = 'block';
 
         if (!archive || archive.length === 0) {
             content.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #aaa;">Noch keine Spiele in der Historie vorhanden! Spiele erst ein paar Runden. 😉</div>';
+            view.classList.add('active');
             return;
         }
 
@@ -2134,54 +2213,116 @@
         let noRonnyPlayersStr = longestNoRonnyStreak.players.join(', ');
 
         content.innerHTML = `
-            <div class="analysis-card" style="border-top-color: #f1c40f;">
-                <div style="font-weight:bold; color:#f1c40f; margin-bottom:8px;">⏱️ Zeit-Rekorde</div>
-                <div style="font-size:0.9rem;">⚡ <b>Schnellstes Spiel:</b> ${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
-                <div style="font-size:0.9rem;">🐢 <b>Langsamstes Spiel:</b> ${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">⏱️ Zeit-Rekorde</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Schnellstes Spiel:</span>
+                    <span class="nerd-stat-val">${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Langsamstes Spiel:</span>
+                    <span class="nerd-stat-val">${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
             </div>
 
-            <div class="analysis-card" style="border-top-color: #e74c3c;">
-                <div style="font-weight:bold; color:#e74c3c; margin-bottom:8px;">🤡 Ronny-Museum (Nuller)</div>
-                <div style="font-size:0.9rem;">👑 <b>Ewiger Ronny-König:</b> ${ronnyKing.name} (${ronnyKing.count} mal 0)</div>
-                <div style="font-size:0.9rem; margin-top:4px;">📉 <b>Meiste Ronnys am Stück:</b> ${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:4px;">(${ronnyPlayersStr || 'k. A.'})</div>
-                <div style="font-size:0.9rem;">🔥 <b>Höchste Ronny-Quote:</b> ${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}% Nuller)</div>
-                <div style="font-size:0.9rem; margin-top:4px;">🌐 <b>Ronnys Insgesamt:</b> ${totalRonnysGlobal} Stück</div>
-                <div style="font-size:0.9rem; margin-top:4px;">💥 <b>Meiste Ronnys in 1 Partie:</b> ${gameWithMostRonnys.ronnys} Stück</div>
-                <div style="font-size:0.75rem; color:#aaa;">(${gameWithMostRonnys.date})</div>
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🤡 Ronny-Museum (Nuller)</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ewiger Ronny-König:</span>
+                    <span class="nerd-stat-val">${ronnyKing.name} (${ronnyKing.count}x 0)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys am Stück:</span>
+                    <span class="nerd-stat-val">${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${ronnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchste Ronny-Quote:</span>
+                    <span class="nerd-stat-val">${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}%)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ronnys Gesamt:</span>
+                    <span class="nerd-stat-val">${totalRonnysGlobal} Stück</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys in 1 Partie:</span>
+                    <span class="nerd-stat-val">${gameWithMostRonnys.ronnys} Stück</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${gameWithMostRonnys.date})</div>
             </div>
 
-            <div class="analysis-card" style="border-top-color: #2ecc71;">
-                <div style="font-weight:bold; color:#2ecc71; margin-bottom:8px;">🎲 Serien & Lauf</div>
-                <div style="font-size:0.9rem;">🍀 <b>Längste Serie ohne Ronny:</b> ${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${noRonnyPlayersStr || 'k. A.'})</div>
-                <div style="font-size:0.9rem;">🚀 <b>Kürzeste Partie:</b> ${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
-                <div style="font-size:0.9rem;">🐘 <b>Längste Partie:</b> ${mostRoundsGame.rounds} Runden</div>
-                <div style="font-size:0.75rem; color:#aaa;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
-                <div style="font-size:0.9rem; margin-top:6px;">📊 <b>Gesamte Runden gespielt:</b> ${totalRoundsPlayed}</div>
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🎲 Serien & Lauf</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Serie ohne Ronny:</span>
+                    <span class="nerd-stat-val">${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${noRonnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Kürzeste Partie:</span>
+                    <span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Partie:</span>
+                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
+                <div class="nerd-stat-row" style="margin-top:2px;">
+                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
+                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
+                </div>
             </div>
 
-            <div class="analysis-card" style="border-top-color: #9b59b6;">
-                <div style="font-weight:bold; color:#9b59b6; margin-bottom:8px;">📊 Kategorie-Könige</div>
-                <div style="font-size:0.85rem;">🔹 <b>350 - 450:</b> ${getCategoryWinners('catSmall')}</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟢 <b>500 - 700:</b> ${getCategoryWinners('catMed')}</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟡 <b>750 - 950:</b> ${getCategoryWinners('catBig')}</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟣 <b>1000 - 1450:</b> ${getCategoryWinners('catElite')}</div>
-                <div style="font-size:0.85rem; margin-top:3px;">💥 <b>1500+:</b> ${getCategoryWinners('catMeister')}</div>
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">📊 Kategorie-Könige</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">350 – 450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">500 – 700:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">750 – 950:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1000 – 1450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1500+:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
+                </div>
             </div>
 
-            <div class="analysis-card" style="border-top-color: #3498db;">
-                <div style="font-weight:bold; color:#3498db; margin-bottom:8px;">🔥 Highscores & All-Time</div>
-                <div style="font-size:0.9rem;">🚀 <b>Höchster Einzelwurf:</b> ${highestSingleTurn.score} Pkt.</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(von ${highestSingleTurn.player} am ${highestSingleTurn.date})</div>
-                <div style="font-size:0.9rem;">🏆 <b>Punkte-König (Gesamt):</b> ${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</div>
-                <div style="font-size:0.9rem; margin-top:4px;">🎯 <b>Bester Schnitt/Runde:</b> ${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</div>
-                <div style="font-size:0.9rem; margin-top:4px;">💰 <b>Gewürfelte Punkte Global:</b> ${totalPointsGlobal.toLocaleString()} Pkt.</div>
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
+                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
+                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
+                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
+                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
+                </div>
             </div>
         `;
+
+        view.classList.add('active');
     }
 
     window.addEventListener('scroll', () => {
