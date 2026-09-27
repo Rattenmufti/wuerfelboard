@@ -552,6 +552,18 @@
         .changelog-list li { margin-bottom: 6px; }
         .dont-show-again { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; margin-top: 15px; cursor: pointer; color: #ccc; }
         .dont-show-again input { cursor: pointer; width: 16px; height: 16px; }
+
+        /* --- DESKTOP ADJUSTMENTS FÜR DIE END-POPUP CHARTS --- */
+        @media (min-width: 1024px) {
+            .chart-canvas-container {
+                top: 0 !important;
+                height: 140px !important;
+                max-width: 200px !important;
+            }
+            .player-chart-card {
+                padding: 10px !important;
+            }
+        }
     </style>
 </head>
 <body id="mainBody">
