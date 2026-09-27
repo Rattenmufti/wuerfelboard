@@ -558,7 +558,7 @@
     .chart-canvas-container {
         top: -25px !important;         /* Zieht das Diagramm ein Stück höher */
         height: 190px !important;      /* Reduziert die Höhe, damit es nicht unten rausragt */
-        max-width: 240px !important;   /* Macht die Kreise einen Tick kompaktr */
+        max-width: 240px !important;   /* Macht die Kreise einen Tick kompakter */
     }
     .player-chart-card {
         padding: 12px 10px !important;
@@ -1861,8 +1861,9 @@
         let highestSingleTurn = { score: 0, player: "", date: "" };
         let gameWithMostRonnys = { ronnys: 0, date: "" };
         
-        let longestRonnyStreak = { count: 0, player: "", date: "" };
-        let longestNoRonnyStreak = { count: 0, player: "", date: "" };
+        // Listen für Gleichstände bei Streaks
+        let longestRonnyStreak = { count: 0, players: [], date: "" };
+        let longestNoRonnyStreak = { count: 0, players: [], date: "" };
         
         let playerStatsMap = {};
 
@@ -1884,7 +1885,6 @@
             let currentGameRonnys = 0;
             let gameNames = g.names || pNames;
 
-            // Für Streaks pro Spieler in DIESEM Spiel
             let currentRonnyStreaksInGame = {};
             let currentNoRonnyStreaksInGame = {};
 
@@ -1898,11 +1898,7 @@
                             totalPoints: 0, 
                             ronnys: 0, 
                             turns: 0,
-                            catSmall: 0,  // 350 - 450
-                            catMed: 0,    // 500 - 700
-                            catBig: 0,    // 750 - 950
-                            catElite: 0,  // 1000 - 1450
-                            catMeister: 0 // 1500+
+                            catSmall: 0, catMed: 0, catBig: 0, catElite: 0, catMeister: 0
                         };
                     }
                     if (currentRonnyStreaksInGame[pName] === undefined) currentRonnyStreaksInGame[pName] = 0;
@@ -1919,26 +1915,36 @@
                             currentGameRonnys++;
                             playerStatsMap[pName].ronnys++;
 
-                            // Ronny Streak erhöhen & No-Ronny resetten
                             currentRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei Ronny-Streaks
                             if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
-                                longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], player: pName, date: g.d };
+                                longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentRonnyStreaksInGame[pName] === longestRonnyStreak.count && currentRonnyStreaksInGame[pName] > 0) {
+                                if (!longestRonnyStreak.players.includes(pName)) {
+                                    longestRonnyStreak.players.push(pName);
+                                }
                             }
+                            
                             currentNoRonnyStreaksInGame[pName] = 0;
 
                         } else {
-                            // Kategorien hochzählen
                             if (val <= 450) playerStatsMap[pName].catSmall++;
                             else if (val <= 700) playerStatsMap[pName].catMed++;
                             else if (val <= 950) playerStatsMap[pName].catBig++;
                             else if (val <= 1450) playerStatsMap[pName].catElite++;
                             else playerStatsMap[pName].catMeister++;
 
-                            // Punkte gewürfelt: Ronny Streak resetten & No-Ronny erhöhen
                             currentRonnyStreaksInGame[pName] = 0;
                             currentNoRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei No-Ronny-Streaks
                             if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
-                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], player: pName, date: g.d };
+                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentNoRonnyStreaksInGame[pName] === longestNoRonnyStreak.count && currentNoRonnyStreaksInGame[pName] > 0) {
+                                if (!longestNoRonnyStreak.players.includes(pName)) {
+                                    longestNoRonnyStreak.players.push(pName);
+                                }
                             }
 
                             if (val > highestSingleTurn.score) {
@@ -1987,6 +1993,9 @@
             }
         });
 
+        let ronnyPlayersStr = longestRonnyStreak.players.join(', ');
+        let noRonnyPlayersStr = longestNoRonnyStreak.players.join(', ');
+
         content.innerHTML = `
             <div class="analysis-card" style="border-top-color: #f1c40f;">
                 <div style="font-weight:bold; color:#f1c40f; margin-bottom:8px;">⏱️ Zeit-Rekorde</div>
@@ -2000,7 +2009,7 @@
                 <div style="font-weight:bold; color:#e74c3c; margin-bottom:8px;">🤡 Ronny-Museum (Nuller)</div>
                 <div style="font-size:0.9rem;">👑 <b>Ewiger Ronny-König:</b> ${ronnyKing.name} (${ronnyKing.count} mal 0)</div>
                 <div style="font-size:0.9rem; margin-top:4px;">📉 <b>Meiste Ronnys am Stück:</b> ${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:4px;">(${longestRonnyStreak.player} am ${longestRonnyStreak.date})</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:4px;">(${ronnyPlayersStr || 'k. A.'})</div>
                 <div style="font-size:0.9rem;">🔥 <b>Höchste Ronny-Quote:</b> ${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}% Nuller)</div>
                 <div style="font-size:0.9rem; margin-top:4px;">🌐 <b>Ronnys Insgesamt:</b> ${totalRonnysGlobal} Stück</div>
                 <div style="font-size:0.9rem; margin-top:4px;">💥 <b>Meiste Ronnys in 1 Partie:</b> ${gameWithMostRonnys.ronnys} Stück</div>
@@ -2010,7 +2019,7 @@
             <div class="analysis-card" style="border-top-color: #2ecc71;">
                 <div style="font-weight:bold; color:#2ecc71; margin-bottom:8px;">🎲 Serien & Lauf</div>
                 <div style="font-size:0.9rem;">🍀 <b>Längste Serie ohne Ronny:</b> ${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</div>
-                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${longestNoRonnyStreak.player} am ${longestNoRonnyStreak.date})</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${noRonnyPlayersStr || 'k. A.'})</div>
                 <div style="font-size:0.9rem;">🚀 <b>Kürzeste Partie:</b> ${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</div>
                 <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
                 <div style="font-size:0.9rem;">🐘 <b>Längste Partie:</b> ${mostRoundsGame.rounds} Runden</div>
