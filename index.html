@@ -633,9 +633,6 @@
     <div class="custom-modal-content" style="max-width: 450px;">
         <div class="custom-modal-title">Was ist neu in v0.993? 🚀</div>
         <ul class="changelog-list">
-            <li>"Nerd-Statistik" hinzugefügt</li>
-            <li>Rundenzeit erfassung hinzugefügt</li>
-            <li>Pausenmodus nach 2 Minuten inaktivität eingefügt</li>
             <li>Akkuanzeige hinzugefügt (nur Android)</li>
             <li>Uhrzeit hinzugefügt (nur Android)</li>
             <li>Menü neu strukturiert</li>
@@ -646,7 +643,6 @@
             <li>Blinken der Zelle bei aktiven Spieler hinzugefügt</li>
             <li>End-Popup integriert (gibt Statistiken am Rundenende grafisch wieder)</li>
             <li>Automatischen Serverabgleich der Spielversion hinzugefügt</li>
-            <li>Kleinere Formatierungsänderungen</li>
         </ul>
         <label class="dont-show-again">
             <input type="checkbox" id="chkHideChangelog">
@@ -2096,27 +2092,32 @@
             }
         });
 
+        // Hilfsfunktion zur Ermittlung aller Gewinner bei Gleichstand in einer Kategorie
+        function getCategoryWinners(catKey) {
+            let maxVal = 0;
+            let winners = [];
+            Object.keys(playerStatsMap).forEach(pName => {
+                let count = playerStatsMap[pName][catKey] || 0;
+                if (count > maxVal) {
+                    maxVal = count;
+                    winners = [pName];
+                } else if (count === maxVal && count > 0) {
+                    winners.push(pName);
+                }
+            });
+            if (maxVal === 0 || winners.length === 0) return "-";
+            return `${winners.join(', ')} (${maxVal}x)`;
+        }
+
         let ronnyKing = { name: "-", count: 0 };
         let pointsKing = { name: "-", points: 0 };
         let bestAvgPlayer = { name: "-", avg: 0 };
         let highestRonnyPercentage = { name: "-", pct: 0 };
-        
-        let catSmallKing = { name: "-", count: 0 };
-        let catMedKing = { name: "-", count: 0 };
-        let catBigKing = { name: "-", count: 0 };
-        let catEliteKing = { name: "-", count: 0 };
-        let catMeisterKing = { name: "-", count: 0 };
 
         Object.keys(playerStatsMap).forEach(pName => {
             let pData = playerStatsMap[pName];
             if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
             if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
-            
-            if (pData.catSmall > catSmallKing.count) catSmallKing = { name: pName, count: pData.catSmall };
-            if (pData.catMed > catMedKing.count) catMedKing = { name: pName, count: pData.catMed };
-            if (pData.catBig > catBigKing.count) catBigKing = { name: pName, count: pData.catBig };
-            if (pData.catElite > catEliteKing.count) catEliteKing = { name: pName, count: pData.catElite };
-            if (pData.catMeister > catMeisterKing.count) catMeisterKing = { name: pName, count: pData.catMeister };
 
             let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
             if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
@@ -2165,11 +2166,11 @@
 
             <div class="analysis-card" style="border-top-color: #9b59b6;">
                 <div style="font-weight:bold; color:#9b59b6; margin-bottom:8px;">📊 Kategorie-Könige</div>
-                <div style="font-size:0.85rem;">🔹 <b>350 - 450:</b> ${catSmallKing.name} (${catSmallKing.count}x)</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟢 <b>500 - 700:</b> ${catMedKing.name} (${catMedKing.count}x)</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟡 <b>750 - 950:</b> ${catBigKing.name} (${catBigKing.count}x)</div>
-                <div style="font-size:0.85rem; margin-top:3px;">🟣 <b>1000 - 1450:</b> ${catEliteKing.name} (${catEliteKing.count}x)</div>
-                <div style="font-size:0.85rem; margin-top:3px;">💥 <b>1500+:</b> ${catMeisterKing.name} (${catMeisterKing.count}x)</div>
+                <div style="font-size:0.85rem;">🔹 <b>350 - 450:</b> ${getCategoryWinners('catSmall')}</div>
+                <div style="font-size:0.85rem; margin-top:3px;">🟢 <b>500 - 700:</b> ${getCategoryWinners('catMed')}</div>
+                <div style="font-size:0.85rem; margin-top:3px;">🟡 <b>750 - 950:</b> ${getCategoryWinners('catBig')}</div>
+                <div style="font-size:0.85rem; margin-top:3px;">🟣 <b>1000 - 1450:</b> ${getCategoryWinners('catElite')}</div>
+                <div style="font-size:0.85rem; margin-top:3px;">💥 <b>1500+:</b> ${getCategoryWinners('catMeister')}</div>
             </div>
 
             <div class="analysis-card" style="border-top-color: #3498db;">
