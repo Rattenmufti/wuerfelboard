@@ -1110,6 +1110,12 @@
                 return;
             }
             
+            if (winText.startsWith("sieger: ")) {
+                let sName = g.w.replace(/Sieger:\s*/i, "").trim().toLowerCase();
+                let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
+                if (pIdx !== -1) { stats[pIdx]++; return; }
+            }
+
             if (winText.includes("aggi") || winText.includes("spieler 1")) {
                 stats[0]++;
                 return;
@@ -1117,12 +1123,6 @@
             if (winText.includes("david") || winText.includes("spieler 2")) {
                 stats[1]++;
                 return;
-            }
-            
-            if (winText.startsWith("sieger: ")) {
-                let sName = g.w.replace(/Sieger:\s*/i, "").trim().toLowerCase();
-                let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
-                if (pIdx !== -1) { stats[pIdx]++; return; }
             }
 
             if (g.s && Array.isArray(g.s)) {
@@ -1134,12 +1134,9 @@
                     }
                 });
 
-                let maxScore = Math.max(...slotTotals);
-                if (maxScore >= 10000) {
-                    for (let i = 0; i < MAX_P; i++) {
-                        if (slotTotals[i] === maxScore) {
-                            stats[i]++;
-                        }
+                for (let i = 0; i < MAX_P; i++) {
+                    if (slotTotals[i] >= 10000) {
+                        stats[i]++;
                     }
                 }
             }
@@ -1524,7 +1521,7 @@
             if (copyPath && wrapperCopy && textCopy) {
                 const pathWidthCopy = copyPath.getBoundingClientRect().width;
                 const wrapperWidthCopy = wrapperCopy.getBoundingClientRect().width || 65;
-                const availableWidthCopy = pathWidthCopy - wrapperWidthCopy;
+                const availableWidthCopy = copyPath.getBoundingClientRect().width - (wrapperCopy.getBoundingClientRect().width || 65);
                 const calculatedLeftCopy = (pct / 100) * availableWidthCopy;
 
                 wrapperCopy.style.right = 'auto';
@@ -1651,8 +1648,7 @@
     function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
         stopTimerAndGetDuration();
 
-        let maxScore = Math.max(...playerTotals.map(item => item.tot));
-        let winners = playerTotals.filter(item => item.tot === maxScore);
+        let winners = playerTotals.filter(item => item.tot >= 10000);
 
         let winText = "-";
         if (winners.length > 1) {
@@ -2411,47 +2407,34 @@
             }
             const totalSec = Math.floor(diffMs / 1000);
             const eHours = Math.floor(totalSec / 3600);
-            const eMinutes = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
-            const eSeconds = String(totalSec % 60).padStart(2, '0');
-
+            const eMin = Math.floor((totalSec % 3600) / 60);
+            const eSec = totalSec % 60;
+            
             if (eHours > 0) {
-                elapsedElem.innerText = `⏱️ ${eHours}:${eMinutes}:${eSeconds}`;
+                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
             } else {
-                elapsedElem.innerText = `⏱️ ${eMinutes}:${eSeconds}`;
+                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
             }
         }
     }
+
     setInterval(updateTimeAndDuration, 1000);
     updateTimeAndDuration();
 
-    async function updateBattery() {
-        const battElem = document.getElementById('battery-display');
-        if (!battElem) return;
-
-        if ('getBattery' in navigator) {
-            try {
-                const battery = await navigator.getBattery();
-                const updateLevel = () => {
-                    const level = Math.round(battery.level * 100);
-                    const charging = battery.charging ? '⚡ ' : '🔋 ';
-                    battElem.innerText = `${charging}${level}%`;
-                };
-                
-                updateLevel();
-                battery.addEventListener('levelchange', updateLevel);
-                battery.addEventListener('chargingchange', updateLevel);
-            } catch (e) {
-                battElem.innerText = '🔋 --%';
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBattery() {
+                const level = Math.round(battery.level * 100);
+                const batElem = document.getElementById('battery-display');
+                if (batElem) batElem.innerText = `🔋 ${level}%`;
             }
-        } else {
-            battElem.style.display = 'none';
-        }
+            updateBattery();
+            battery.addEventListener('levelchange', updateBattery);
+        });
     }
-    updateBattery();
 
     render();
     checkChangelog();
-    checkForUpdates();
 </script>
 </body>
 </html>
