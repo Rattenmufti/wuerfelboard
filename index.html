@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     
-    <title>Würfelboard v0.994 Stable</title>
+    <title>Würfelboard v<span class="app-version-text"></span> Stable</title>
     <!-- Chart.js für die Tortendiagramme im Popup -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -702,7 +702,7 @@
 
 <div id="changelogModal" class="custom-modal-backdrop">
     <div class="custom-modal-content" style="max-width: 450px;">
-        <div class="custom-modal-title">Was ist neu in v0.994? 🚀</div>
+        <div class="custom-modal-title">Was ist neu in v<span class="app-version-text"></span>? 🚀</div>
         <ul class="changelog-list">
             <li>Nerd-Statistik hinzugefügt</li>
             <li>Rundenzeiterfassung hinzugefügt</li>
@@ -742,7 +742,7 @@
 
     <div class="header-bar">
         <div class="header-left">
-            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.994 Stable</h2>
+            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v<span class="app-version-text"></span> Stable</h2>
             <div id="status-bar" class="header-status">
                 <span id="elapsed-display">⏱️ 00:00</span>
                 <span id="time-display">13:52</span>
@@ -827,7 +827,19 @@
 <input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
 
 <script>
+    // ==========================================
+    // ZENTRALE VERSIONSEINSTELLUNG
+    // ==========================================
     const APP_VERSION = "0.994";
+
+    function applyVersionToUI() {
+        document.title = `Würfelboard v${APP_VERSION} Stable`;
+        document.querySelectorAll('.app-version-text').forEach(el => {
+            el.innerText = APP_VERSION;
+        });
+    }
+
+    applyVersionToUI();
 
     // AUTOMATISCHER GITHUB-VERSIONSABGLEICH
     async function checkForUpdates() {
