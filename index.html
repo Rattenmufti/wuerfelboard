@@ -421,7 +421,7 @@
         body.mobile-mode .race-horse-emoji { font-size: 1.8rem !important; } 
         body.mobile-mode .race-horse-text { font-size: 0.7rem !important; }
 
-        #histView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
+        #histView, #nerdStatsView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
         .history-item { background:#333; padding:8px 12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:white; font-size: 0.85rem; border-left: 4px solid var(--accent); }
         .btn-load-hist { background:var(--win); border:none; color:white; padding:6px 10px; border-radius:4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
 
@@ -620,6 +620,7 @@
         <div class="header-left">
             <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v0.992 Stable</h2>
             <div id="status-bar" class="header-status">
+                <span id="elapsed-display">⏱️ 00:00</span>
                 <span id="time-display">13:52</span>
                 <span id="battery-display">🔋 67%</span>
             </div>
@@ -637,6 +638,7 @@
             </div>
             <div class="btn-group">
                 <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
+                <button class="btn-top" onclick="openNerdStats()" style="background:#9b59b6">🤓 NERD-STATS</button>
                 <button class="btn-top" onclick="finishCheck()" style="background:var(--win)">✨ NEU</button>
                 <button class="btn-top" onclick="askMasterReset()" style="background:#555">🔄 RESET</button>
             </div>
@@ -678,9 +680,22 @@
 <div id="histView">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 0 5px;">
         <h2 style="color:white; margin:0; font-size: 1.2rem;">Historie</h2>
-        <button class="btn-top" onclick="document.getElementById('histView').style.display='none'" style="background:var(--ronny); padding: 5px 15px;">X</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn-top" onclick="openNerdStats()" style="background:#9b59b6; padding: 5px 12px;">🤓 NERD-STATS</button>
+            <button class="btn-top" onclick="document.getElementById('histView').style.display='none'" style="background:var(--ronny); padding: 5px 15px;">X</button>
+        </div>
     </div>
     <div id="arcList"></div>
+</div>
+
+<div id="nerdStatsView">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 2px solid var(--accent); padding-bottom: 10px;">
+        <h2 style="color:var(--accent); margin:0; font-size: 1.4rem;">🤓 Nerd-Statistik (Ewige Daten)</h2>
+        <button class="btn-top" onclick="document.getElementById('nerdStatsView').style.display='none'" style="background:var(--ronny); padding: 5px 15px; font-size: 1rem;">X</button>
+    </div>
+    <div id="nerdStatsContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; color: white;">
+        <!-- Dynamische Inhalte -->
+    </div>
 </div>
 
 <input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
@@ -842,6 +857,7 @@
     let startIdx = getSafe('10k_startIdx', 0);
     let theme = getSafe('10k_theme', 'dark');
     let showRace = getSafe('10k_showRace', false);
+    let gameStartTime = getSafe('10k_gameStartTime', Date.now());
     
     let pEmojis = getSafe('10k_emojis', Array(MAX_P).fill("🐎"));
     
@@ -851,6 +867,11 @@
     if(theme === 'light') document.body.classList.add('light-mode');
     if(viewMode === 'mobile') document.body.classList.add('mobile-mode');
     updateToggleButtonText();
+
+    function resetGameTimer() {
+        gameStartTime = Date.now();
+        localStorage.setItem('10k_gameStartTime', gameStartTime);
+    }
 
     function sanitizeOldNames(text) {
         if (!text) return "";
@@ -911,7 +932,7 @@
         });
     }
 
-    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); } }
+    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); localStorage.setItem('10k_gameStartTime', gameStartTime); } }
     
     function toggleMobile() { 
         viewMode = (viewMode === 'desktop' ? 'mobile' : 'desktop'); 
@@ -1666,9 +1687,10 @@
     function renderArchiveList() { 
         document.getElementById('arcList').innerHTML = archive.map((g, idx) => {
             let displayW = sanitizeOldNames(g.w);
+            let durationText = g.durationMs ? ` | ⏱️ ${formatDuration(g.durationMs)}` : '';
             return `
             <div class="history-item">
-                <div><strong>${g.d}</strong><br><small>${displayW}</small></div>
+                <div><strong>${g.d}${durationText}</strong><br><small>${displayW}</small></div>
                 <div style="display: flex; gap: 5px;">
                     <button class="btn-load-hist" onclick="showArchiveGame(${idx})">LADEN</button>
                     <button class="btn-load-hist" style="background:var(--ronny);" onclick="deleteHistoryItem(${idx})">LÖSCHEN</button>
@@ -1771,10 +1793,22 @@
         checkForUpdates();
         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
         pendingEndGame = false;
-        archive.unshift({ d: new Date().toLocaleString(), w: winText, s: JSON.parse(JSON.stringify(scores)), names: JSON.parse(JSON.stringify(pNames)) });
+
+        const now = Date.now();
+        const durationMs = now - (gameStartTime || now);
+
+        archive.unshift({ 
+            d: new Date().toLocaleString(), 
+            w: winText, 
+            s: JSON.parse(JSON.stringify(scores)), 
+            names: JSON.parse(JSON.stringify(pNames)),
+            durationMs: durationMs
+        });
         scores = [Array(MAX_P).fill("")]; 
         undoHistory = [];
         
+        resetGameTimer();
+
         playCustomAudio('neue-runde.mp3');
         
         playedUnder1000 = Array(MAX_P).fill(false);
@@ -1788,6 +1822,148 @@
         recalculateKingOfTheHill();
         render(); 
         save();
+    }
+
+    /* --- NERD STATISTIK FUNKTIONEN --- */
+    function formatDuration(ms) {
+        if (!ms || isNaN(ms)) return "k. A.";
+        let totalSec = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSec / 3600);
+        let minutes = Math.floor((totalSec % 3600) / 60);
+        let seconds = totalSec % 60;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        if (minutes > 0) return `${minutes}m ${seconds}s`;
+        return `${seconds}s`;
+    }
+
+    function openNerdStats() {
+        document.getElementById('histView').style.display = 'none';
+        const view = document.getElementById('nerdStatsView');
+        const content = document.getElementById('nerdStatsContent');
+        view.style.display = 'block';
+
+        if (!archive || archive.length === 0) {
+            content.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #aaa;">Noch keine Spiele in der Historie vorhanden! Spiele erst ein paar Runden. 😉</div>';
+            return;
+        }
+
+        let totalGames = archive.length;
+        let totalRoundsPlayed = 0;
+        let totalRonnysGlobal = 0;
+        let totalPointsGlobal = 0;
+        
+        let fastestGame = { time: Infinity, date: "", winner: "" };
+        let slowestGame = { time: 0, date: "", winner: "" };
+        
+        let leastRoundsGame = { rounds: Infinity, date: "", winner: "" };
+        let mostRoundsGame = { rounds: 0, date: "", winner: "" };
+        
+        let highestSingleTurn = { score: 0, player: "", date: "" };
+        let gameWithMostRonnys = { ronnys: 0, date: "" };
+        
+        let playerStatsMap = {};
+
+        archive.forEach(g => {
+            let roundsInGame = g.s.length;
+            if (g.s.length > 0 && g.s[g.s.length - 1].every(v => v === "" || v === undefined)) {
+                roundsInGame--;
+            }
+            totalRoundsPlayed += roundsInGame;
+
+            if (g.durationMs) {
+                if (g.durationMs < fastestGame.time) fastestGame = { time: g.durationMs, date: g.d, winner: g.w };
+                if (g.durationMs > slowestGame.time) slowestGame = { time: g.durationMs, date: g.d, winner: g.w };
+            }
+
+            if (roundsInGame < leastRoundsGame.rounds && roundsInGame > 0) leastRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+            if (roundsInGame > mostRoundsGame.rounds) mostRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+
+            let currentGameRonnys = 0;
+            let gameNames = g.names || pNames;
+
+            g.s.forEach((row, rIdx) => {
+                row.forEach((valStr, pIdx) => {
+                    let pName = sanitizeOldNames(gameNames[pIdx]);
+                    if (!pName || pName.trim() === "") return;
+
+                    if (!playerStatsMap[pName]) {
+                        playerStatsMap[pName] = { totalPoints: 0, ronnys: 0, turns: 0 };
+                    }
+
+                    let val = parseInt(valStr);
+                    if (!isNaN(val)) {
+                        playerStatsMap[pName].turns++;
+                        playerStatsMap[pName].totalPoints += val;
+                        totalPointsGlobal += val;
+
+                        if (val === 0) {
+                            totalRonnysGlobal++;
+                            currentGameRonnys++;
+                            playerStatsMap[pName].ronnys++;
+                        }
+
+                        if (val > highestSingleTurn.score) {
+                            highestSingleTurn = { score: val, player: pName, date: g.d };
+                        }
+                    }
+                });
+            });
+
+            if (currentGameRonnys > gameWithMostRonnys.ronnys) {
+                gameWithMostRonnys = { ronnys: currentGameRonnys, date: g.d };
+            }
+        });
+
+        let ronnyKing = { name: "-", count: 0 };
+        let pointsKing = { name: "-", points: 0 };
+        let bestAvgPlayer = { name: "-", avg: 0 };
+
+        Object.keys(playerStatsMap).forEach(pName => {
+            let pData = playerStatsMap[pName];
+            if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
+            if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
+            
+            let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
+            if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
+                bestAvgPlayer = { name: pName, avg: avg };
+            }
+        });
+
+        content.innerHTML = `
+            <div class="analysis-card" style="border-top-color: #f1c40f;">
+                <div style="font-weight:bold; color:#f1c40f; margin-bottom:8px;">⏱️ Zeit-Rekorde</div>
+                <div style="font-size:0.9rem;">⚡ <b>Schnellstes Spiel:</b> ${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
+                <div style="font-size:0.9rem;">🐢 <b>Langsamstes Spiel:</b> ${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</div>
+                <div style="font-size:0.75rem; color:#aaa;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
+            </div>
+
+            <div class="analysis-card" style="border-top-color: #e74c3c;">
+                <div style="font-weight:bold; color:#e74c3c; margin-bottom:8px;">🤡 Ronny-Museum (Nuller)</div>
+                <div style="font-size:0.9rem;">👑 <b>Ewiger Ronny-König:</b> ${ronnyKing.name} (${ronnyKing.count} mal 0)</div>
+                <div style="font-size:0.9rem; margin-top:4px;">🌐 <b>Ronnys Insgesamt:</b> ${totalRonnysGlobal} Stück</div>
+                <div style="font-size:0.9rem; margin-top:4px;">💥 <b>Meiste Ronnys in 1 Partie:</b> ${gameWithMostRonnys.ronnys} Stück</div>
+                <div style="font-size:0.75rem; color:#aaa;">(${gameWithMostRonnys.date})</div>
+            </div>
+
+            <div class="analysis-card" style="border-top-color: #2ecc71;">
+                <div style="font-weight:bold; color:#2ecc71; margin-bottom:8px;">🎲 Runden & Würfe</div>
+                <div style="font-size:0.9rem;">🚀 <b>Kürzeste Partie:</b> ${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
+                <div style="font-size:0.9rem;">🐘 <b>Längste Partie:</b> ${mostRoundsGame.rounds} Runden</div>
+                <div style="font-size:0.75rem; color:#aaa;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
+                <div style="font-size:0.9rem; margin-top:6px;">📊 <b>Gesamte Runden gespielt:</b> ${totalRoundsPlayed}</div>
+            </div>
+
+            <div class="analysis-card" style="border-top-color: #3498db;">
+                <div style="font-weight:bold; color:#3498db; margin-bottom:8px;">🔥 Highscores & All-Time</div>
+                <div style="font-size:0.9rem;">🚀 <b>Höchster Einzelwurf:</b> ${highestSingleTurn.score} Pkt.</div>
+                <div style="font-size:0.75rem; color:#aaa; margin-bottom:6px;">(von ${highestSingleTurn.player} am ${highestSingleTurn.date})</div>
+                <div style="font-size:0.9rem;">🏆 <b>Punkte-König (Gesamt):</b> ${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</div>
+                <div style="font-size:0.9rem; margin-top:4px;">🎯 <b>Bester Schnitt/Runde:</b> ${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</div>
+                <div style="font-size:0.9rem; margin-top:4px;">💰 <b>Gewürfelte Punkte Global:</b> ${totalPointsGlobal.toLocaleString()} Pkt.</div>
+            </div>
+        `;
     }
 
     window.addEventListener('scroll', () => {
@@ -1832,8 +2008,8 @@
         page3.appendChild(b); 
     }
 
-    /* --- LIVE UHRZEIT & AKKUSTAND --- */
-    function updateTime() {
+    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
+    function updateTimeAndDuration() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -1841,9 +2017,24 @@
         if (timeElem) {
             timeElem.innerText = `${hours}:${minutes}`;
         }
+
+        const elapsedElem = document.getElementById('elapsed-display');
+        if (elapsedElem && gameStartTime) {
+            const diffMs = Math.max(0, now.getTime() - gameStartTime);
+            const totalSec = Math.floor(diffMs / 1000);
+            const eHours = Math.floor(totalSec / 3600);
+            const eMinutes = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+            const eSeconds = String(totalSec % 60).padStart(2, '0');
+
+            if (eHours > 0) {
+                elapsedElem.innerText = `⏱️ ${eHours}:${eMinutes}:${eSeconds}`;
+            } else {
+                elapsedElem.innerText = `⏱️ ${eMinutes}:${eSeconds}`;
+            }
+        }
     }
-    setInterval(updateTime, 1000);
-    updateTime();
+    setInterval(updateTimeAndDuration, 1000);
+    updateTimeAndDuration();
 
     async function updateBattery() {
         const battElem = document.getElementById('battery-display');
