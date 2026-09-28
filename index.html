@@ -1710,7 +1710,7 @@
     }
 
     function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
-        stopTimerAndGetDuration();
+        const durationMs = stopTimerAndGetDuration();
 
         let winners = playerTotals.filter(item => item.tot >= 10000);
 
@@ -1827,15 +1827,41 @@
             matchEndChartInstances = [];
         };
 
+        // Spiel sofort beim Öffnen des Popups in die Historie eintragen & abspeichern
+        archive.unshift({ 
+            d: new Date().toLocaleString(), 
+            w: winText, 
+            s: JSON.parse(JSON.stringify(scores)), 
+            names: JSON.parse(JSON.stringify(pNames)),
+            durationMs: durationMs
+        });
+        recalculateKingOfTheHill();
+        save();
+        render();
+
         openConfirm(
             "Partie Beendet! 🏆",
             "", 
             () => {
                 modal.classList.remove('game-over-modal');
                 destroyCharts();
-                finishGame(winText);
+                // Neue Partie zurücksetzen
+                checkForUpdates();
+                if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
-                autoEndTimer = null;
+                scores = [Array(MAX_P).fill("")]; 
+                undoHistory = [];
+                resetGameTimer();
+                playCustomAudio('neue-runde.mp3');
+                playedUnder1000 = Array(MAX_P).fill(false);
+                playedWinnerSound = Array(MAX_P).fill(false);
+                const sortedActive = getSortedActive();
+                if (sortedActive.length > 0) {
+                    focus = { r: 0, pI: sortedActive[0].i, apIdx: 0 };
+                }
+                recalculateKingOfTheHill();
+                render(); 
+                save();
             },
             () => {
                 modal.classList.remove('game-over-modal');
