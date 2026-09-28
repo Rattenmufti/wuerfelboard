@@ -805,6 +805,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 0 5px;">
         <h2 style="color:white; margin:0; font-size: 1.2rem;">Historie</h2>
         <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn-top" onclick="fixAndRecalculateArchive()" style="background:#2196F3; padding: 5px 12px;">🔄 NEU EINLESEN</button>
             <button class="btn-top" onclick="openNerdStats()" style="background:#9b59b6; padding: 5px 12px;">🤓 NERD-STATS</button>
             <button class="btn-top" onclick="document.getElementById('histView').style.display='none'" style="background:var(--ronny); padding: 5px 15px;">X</button>
         </div>
@@ -1091,6 +1092,69 @@
         if (!text) return "";
         return text.replace(/\bAggi\b/gi, pNames[0] || "Spieler 1")
                    .replace(/\bDavid\b/gi, pNames[1] || "Spieler 2");
+    }
+
+
+    function fixAndRecalculateArchive() {
+        let arch = archive || getSafe('10k_archive', []);
+        let names = pNames || getSafe('10k_names', ["Spieler 1", "Spieler 2"]);
+
+        if (!arch || arch.length === 0) {
+            openAlert("Historie", "Keine Historie vorhanden.");
+            return;
+        }
+
+        let correctedCount = 0;
+
+        arch.forEach(game => {
+            let gameScores = game.s || [];
+            let gameNames = game.names || names;
+            let numPlayers = MAX_P;
+
+            let totals = new Array(numPlayers).fill(0);
+
+            gameScores.forEach(row => {
+                for (let i = 0; i < numPlayers; i++) {
+                    let val = parseInt(row[i], 10);
+                    if (!isNaN(val)) {
+                        totals[i] += val;
+                    }
+                }
+            });
+
+            let winnersIdx = [];
+            totals.forEach((tot, idx) => {
+                if (tot >= 10000) {
+                    winnersIdx.push(idx);
+                }
+            });
+
+            let correctWinnerStr = "";
+            if (winnersIdx.length > 1) {
+                let winnerNames = winnersIdx
+                    .map(i => gameNames[i] ? sanitizeOldNames(gameNames[i]).trim() : "")
+                    .filter(n => n !== "");
+                correctWinnerStr = "Unentschieden: " + winnerNames.join(", ");
+            } else if (winnersIdx.length === 1) {
+                let wName = gameNames[winnersIdx[0]] ? sanitizeOldNames(gameNames[winnersIdx[0]]).trim() : "";
+                correctWinnerStr = "Sieger: " + wName;
+            } else {
+                correctWinnerStr = game.w || "-";
+            }
+
+            if (game.w !== correctWinnerStr) {
+                game.w = correctWinnerStr;
+                correctedCount++;
+            }
+        });
+
+        archive = arch;
+        save();
+        recalculateKingOfTheHill();
+        renderArchiveList();
+        render();
+
+        openAlert("Historie korrigiert", `Scan abgeschlossen!\nEs wurden ${correctedCount} fehlerhafte Historien-Einträge korrigiert.`);
     }
 
     function recalculateKingOfTheHill() {
