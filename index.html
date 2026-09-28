@@ -935,6 +935,7 @@
     let autoPageReturnTimer = null;
     let autoEndTimer = null;
     let pendingEndGame = false;
+    let isSavingGame = false;
     let matchEndChartInstances = [];
 
     // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
@@ -1675,7 +1676,7 @@
     }
 
     function checkGameAutoEnd(sorted) {
-        if (isArcView || pendingEndGame) return;
+        if (isArcView || pendingEndGame || isSavingGame) return;
         if (!sorted || sorted.length === 0) return;
 
         let lastPlayedRow = -1;
@@ -1710,6 +1711,9 @@
     }
 
     function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
+        if (isSavingGame) return;
+        isSavingGame = true;
+
         const durationMs = stopTimerAndGetDuration();
 
         let winners = playerTotals.filter(item => item.tot >= 10000);
@@ -1849,6 +1853,7 @@
                 checkForUpdates();
                 if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
+                isSavingGame = false;
                 scores = [Array(MAX_P).fill("")]; 
                 undoHistory = [];
                 resetGameTimer();
@@ -1867,6 +1872,7 @@
                 modal.classList.remove('game-over-modal');
                 destroyCharts();
                 pendingEndGame = false;
+                isSavingGame = false;
                 autoEndTimer = null;
             }
         );
@@ -1980,6 +1986,7 @@
                 undoHistory = [];
                 if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
+                isSavingGame = false;
                 resetGameTimer();
                 save(); render(); 
             } catch(err) { 
@@ -2105,6 +2112,9 @@
     }
 
     function finishGame(winText) {
+        if (isSavingGame) return;
+        isSavingGame = true;
+
         checkForUpdates();
         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
         pendingEndGame = false;
@@ -2136,6 +2146,7 @@
         recalculateKingOfTheHill();
         render(); 
         save();
+        isSavingGame = false;
     }
 
     /* --- NERD STATISTIK FUNKTIONEN --- */
@@ -2240,299 +2251,13 @@
                             // Gleichstand oder neuer Rekord bei Ronny-Streaks
                             if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
                                 longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], players: [pName], date: g.d };
-                            } else if (currentRonnyStreaksInGame[pName] === longestRonnyStreak.count && currentRonnyStreaksInGame[pName] > 0) {
-                                if (!longestRonnyStreak.players.includes(pName)) {
-                                    longestRonnyStreak.players.push(pName);
-                                }
-                            }
-                            
-                            currentNoRonnyStreaksInGame[pName] = 0;
-
-                        } else {
-                            if (val <= 450) playerStatsMap[pName].catSmall++;
-                            else if (val <= 700) playerStatsMap[pName].catMed++;
-                            else if (val <= 950) playerStatsMap[pName].catBig++;
-                            else if (val <= 1450) playerStatsMap[pName].catElite++;
-                            else playerStatsMap[pName].catMeister++;
-
-                            currentRonnyStreaksInGame[pName] = 0;
-                            currentNoRonnyStreaksInGame[pName]++;
-                            
-                            // Gleichstand oder neuer Rekord bei No-Ronny-Streaks
-                            if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
-                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], players: [pName], date: g.d };
-                            } else if (currentNoRonnyStreaksInGame[pName] === longestNoRonnyStreak.count && currentNoRonnyStreaksInGame[pName] > 0) {
-                                if (!longestNoRonnyStreak.players.includes(pName)) {
-                                    longestNoRonnyStreak.players.push(pName);
-                                }
-                            }
-
-                            if (val > highestSingleTurn.score) {
-                                highestSingleTurn = { score: val, player: pName, date: g.d };
                             }
                         }
                     }
                 });
             });
-
-            if (currentGameRonnys > gameWithMostRonnys.ronnys) {
-                gameWithMostRonnys = { ronnys: currentGameRonnys, date: g.d };
-            }
-        });
-
-        // Hilfsfunktion zur Ermittlung aller Gewinner bei Gleichstand in einer Kategorie
-        function getCategoryWinners(catKey) {
-            let maxVal = 0;
-            let winners = [];
-            Object.keys(playerStatsMap).forEach(pName => {
-                let count = playerStatsMap[pName][catKey] || 0;
-                if (count > maxVal) {
-                    maxVal = count;
-                    winners = [pName];
-                } else if (count === maxVal && count > 0) {
-                    winners.push(pName);
-                }
-            });
-            if (maxVal === 0 || winners.length === 0) return "-";
-            return `${winners.join(', ')} (${maxVal}x)`;
-        }
-
-        let ronnyKing = { name: "-", count: 0 };
-        let pointsKing = { name: "-", points: 0 };
-        let bestAvgPlayer = { name: "-", avg: 0 };
-        let highestRonnyPercentage = { name: "-", pct: 0 };
-
-        Object.keys(playerStatsMap).forEach(pName => {
-            let pData = playerStatsMap[pName];
-            if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
-            if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
-
-            let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
-            if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
-                bestAvgPlayer = { name: pName, avg: avg };
-            }
-
-            let ronnyPct = pData.turns > 0 ? Math.round((pData.ronnys / pData.turns) * 100) : 0;
-            if (ronnyPct > highestRonnyPercentage.pct && pData.turns >= 10) {
-                highestRonnyPercentage = { name: pName, pct: ronnyPct };
-            }
-        });
-
-        let ronnyPlayersStr = longestRonnyStreak.players.join(', ');
-        let noRonnyPlayersStr = longestNoRonnyStreak.players.join(', ');
-
-        content.innerHTML = `
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">⏱️ Zeit-Rekorde</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Schnellstes Spiel:</span>
-                    <span class="nerd-stat-val">${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
-                <div class="nerd-stat-row" style="margin-top:4px;">
-                    <span class="nerd-stat-label">Langsamstes Spiel:</span>
-                    <span class="nerd-stat-val">${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">🤡 Ronny-Museum (Nuller)</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Ewiger Ronny-König:</span>
-                    <span class="nerd-stat-val">${ronnyKing.name} (${ronnyKing.count}x 0)</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste Ronnys am Stück:</span>
-                    <span class="nerd-stat-val">${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${ronnyPlayersStr || 'k. A.'})</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Höchste Ronny-Quote:</span>
-                    <span class="nerd-stat-val">${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}%)</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Ronnys Gesamt:</span>
-                    <span class="nerd-stat-val">${totalRonnysGlobal} Stück</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste Ronnys in 1 Partie:</span>
-                    <span class="nerd-stat-val">${gameWithMostRonnys.ronnys} Stück</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${gameWithMostRonnys.date})</div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">🎲 Serien & Lauf</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Längste Serie ohne Ronny:</span>
-                    <span class="nerd-stat-val">${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${noRonnyPlayersStr || 'k. A.'})</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Kürzeste Partie:</span>
-                    <span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Längste Partie:</span>
-                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
-                <div class="nerd-stat-row" style="margin-top:2px;">
-                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
-                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
-                </div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">📊 Kategorie-Könige</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">350 – 450:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">500 – 700:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">750 – 950:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">1000 – 1450:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">1500+:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
-                </div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
-                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
-                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
-                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
-                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
-                </div>
-            </div>
-        `;
-
-        view.classList.add('active');
-    }
-
-    window.addEventListener('scroll', () => {
-        const stickyCopy = document.getElementById('raceTrackStickyCopy');
-        
-        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
-            if (stickyCopy.style.display !== 'block') {
-                stickyCopy.style.display = 'block';
-                renderRaceTrack();
-            }
-        } else {
-            stickyCopy.style.display = 'none';
-        }
-    }, { passive: true });
-
-    // Globale Aktivitätstracking für Inaktivitäts-Timer
-    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
-        window.addEventListener(evt, () => {
-            if (isPaused) {
-                resumeFromPause();
-            } else {
-                resetInactivityTimer();
-            }
-        }, { passive: true });
-    });
-
-    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
-    
-    const page1 = document.getElementById('padPage1');
-    for(let v=350; v<=1300; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page1.appendChild(b); 
-    }
-
-    const page2 = document.getElementById('padPage2');
-    for(let v=1350; v<=2500; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page2.appendChild(b); 
-    }
-
-    const page3 = document.getElementById('padPage3');
-    for(let v=2550; v<=3700; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page3.appendChild(b); 
-    }
-
-    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
-    function updateTimeAndDuration() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const timeElem = document.getElementById('time-display');
-        if (timeElem) {
-            timeElem.innerText = `${hours}:${minutes}`;
-        }
-
-        const elapsedElem = document.getElementById('elapsed-display');
-        if (elapsedElem) {
-            let diffMs = accumulatedTimeMs;
-            if (gameActive && currentTurnStartTime && !isPaused) {
-                diffMs += (now.getTime() - currentTurnStartTime);
-            }
-            const totalSec = Math.floor(diffMs / 1000);
-            const eHours = Math.floor(totalSec / 3600);
-            const eMin = Math.floor((totalSec % 3600) / 60);
-            const eSec = totalSec % 60;
-            
-            if (eHours > 0) {
-                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
-            } else {
-                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
-            }
-        }
-    }
-
-    setInterval(updateTimeAndDuration, 1000);
-    updateTimeAndDuration();
-
-    if ('getBattery' in navigator) {
-        navigator.getBattery().then(battery => {
-            function updateBattery() {
-                const level = Math.round(battery.level * 100);
-                const batElem = document.getElementById('battery-display');
-                if (batElem) batElem.innerText = `🔋 ${level}%`;
-            }
-            updateBattery();
-            battery.addEventListener('levelchange', updateBattery);
         });
     }
-
-    render();
-    checkChangelog();
 </script>
 </body>
 </html>
