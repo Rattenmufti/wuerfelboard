@@ -2111,13 +2111,6 @@
 
         const durationMs = stopTimerAndGetDuration();
 
-        archive.unshift({ 
-            d: new Date().toLocaleString(), 
-            w: winText, 
-            s: JSON.parse(JSON.stringify(scores)), 
-            names: JSON.parse(JSON.stringify(pNames)),
-            durationMs: durationMs
-        });
         scores = [Array(MAX_P).fill("")]; 
         undoHistory = [];
         
