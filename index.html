@@ -2373,74 +2373,60 @@
                     <span class="nerd-stat-label">Kürzeste Partie:</span>
                     <span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
                 </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)} – ${leastRoundsGame.date})</div>
-                <div class="nerd-stat-row" style="margin-top:4px;">
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
+                <div class="nerd-stat-row">
                     <span class="nerd-stat-label">Längste Partie:</span>
-                    <span class="nerd-stat-val">${mostRoundsGame.rounds > 0 ? mostRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
+                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
                 </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)} – ${mostRoundsGame.date})</div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">📊 Punkte & Quoten</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
-                    <span class="nerd-stat-val">${highestSingleTurn.score > 0 ? highestSingleTurn.score + ' Pkt.' : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
-                <div class="nerd-stat-row" style="margin-top:4px;">
-                    <span class="nerd-stat-label">Bester Durchschnitt:</span>
-                    <span class="nerd-stat-val">${bestAvgPlayer.avg > 0 ? bestAvgPlayer.avg + ' Pkt./Zug' : 'k. A.'}</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${bestAvgPlayer.name})</div>
-                <div class="nerd-stat-row" style="margin-top:4px;">
-                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
-                    <span class="nerd-stat-val">${pointsKing.points.toLocaleString()} Pkt.</span>
-                </div>
-                <div class="nerd-stat-sub" style="text-align:right;">(${pointsKing.name})</div>
-                <div class="nerd-stat-row" style="margin-top:4px;">
-                    <span class="nerd-stat-label">Punkte Aller Spiele:</span>
-                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
+                <div class="nerd-stat-row" style="margin-top:2px;">
+                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
+                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
                 </div>
             </div>
 
             <div class="nerd-card-clean">
-                <div class="nerd-card-header">🎯 Kategorien-Könige</div>
+                <div class="nerd-card-header">📊 Kategorie-Könige</div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste 350 - 450:</span>
+                    <span class="nerd-stat-label">350 – 450:</span>
                     <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste 500 - 700:</span>
+                    <span class="nerd-stat-label">500 – 700:</span>
                     <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste 750 - 950:</span>
+                    <span class="nerd-stat-label">750 – 950:</span>
                     <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste 1000 - 1450:</span>
+                    <span class="nerd-stat-label">1000 – 1450:</span>
                     <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Meiste Über 1500:</span>
+                    <span class="nerd-stat-label">1500+:</span>
                     <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
                 </div>
             </div>
 
             <div class="nerd-card-clean">
-                <div class="nerd-card-header">🌐 Allgemeines</div>
+                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Gespielte Partien:</span>
-                    <span class="nerd-stat-val">${totalGames}</span>
+                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
+                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
+                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Gespielte Runden:</span>
-                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
+                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
+                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
                 </div>
                 <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Ø Runden pro Spiel:</span>
-                    <span class="nerd-stat-val">${totalGames > 0 ? (totalRoundsPlayed / totalGames).toFixed(1) : 'k. A.'}</span>
+                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
+                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
                 </div>
             </div>
         `;
@@ -2448,62 +2434,105 @@
         view.classList.add('active');
     }
 
-    // PADS DYNAMISCH BEFÜLLEN
-    function setupPads() {
-        const page2 = document.getElementById('padPage2');
-        const page3 = document.getElementById('padPage3');
-        if(!page2 || !page3) return;
+    window.addEventListener('scroll', () => {
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        
+        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
+            if (stickyCopy.style.display !== 'block') {
+                stickyCopy.style.display = 'block';
+                renderRaceTrack();
+            }
+        } else {
+            stickyCopy.style.display = 'none';
+        }
+    }, { passive: true });
 
-        page2.innerHTML = '';
-        page3.innerHTML = '';
-
-        for (let i = 50; i <= 1200; i += 50) {
-            let btn = document.createElement('button');
-            btn.className = 'pad-btn';
-            btn.innerText = i;
-            btn.onclick = () => setV(i);
-
-            if (i <= 600) {
-                page2.appendChild(btn);
+    // Globale Aktivitätstracking für Inaktivitäts-Timer
+    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (isPaused) {
+                resumeFromPause();
             } else {
-                page3.appendChild(btn);
+                resetInactivityTimer();
+            }
+        }, { passive: true });
+    });
+
+    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
+    
+    const page1 = document.getElementById('padPage1');
+    for(let v=350; v<=1300; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page1.appendChild(b); 
+    }
+
+    const page2 = document.getElementById('padPage2');
+    for(let v=1350; v<=2500; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page2.appendChild(b); 
+    }
+
+    const page3 = document.getElementById('padPage3');
+    for(let v=2550; v<=3700; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page3.appendChild(b); 
+    }
+
+    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
+    function updateTimeAndDuration() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeElem = document.getElementById('time-display');
+        if (timeElem) {
+            timeElem.innerText = `${hours}:${minutes}`;
+        }
+
+        const elapsedElem = document.getElementById('elapsed-display');
+        if (elapsedElem) {
+            let diffMs = accumulatedTimeMs;
+            if (gameActive && currentTurnStartTime && !isPaused) {
+                diffMs += (now.getTime() - currentTurnStartTime);
+            }
+            const totalSec = Math.floor(diffMs / 1000);
+            const eHours = Math.floor(totalSec / 3600);
+            const eMin = Math.floor((totalSec % 3600) / 60);
+            const eSec = totalSec % 60;
+            
+            if (eHours > 0) {
+                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
+            } else {
+                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
             }
         }
     }
 
-    // ==========================================
-    // INITIALISIERUNG
-    // ==========================================
-    window.addEventListener('load', () => {
-        setupPads();
-        render();
-        checkChangelog();
-        checkForUpdates();
+    setInterval(updateTimeAndDuration, 1000);
+    updateTimeAndDuration();
 
-        // Android / System Bar Display Updates
-        setInterval(() => {
-            let timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            let tDisp = document.getElementById('time-display');
-            if (tDisp) tDisp.innerText = timeStr;
-
-            if (gameActive && currentTurnStartTime && !isPaused) {
-                let currentMs = accumulatedTimeMs + (Date.now() - currentTurnStartTime);
-                let elDisp = document.getElementById('elapsed-display');
-                if (elDisp) elDisp.innerText = `⏱️ ${formatDuration(currentMs)}`;
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBattery() {
+                const level = Math.round(battery.level * 100);
+                const batElem = document.getElementById('battery-display');
+                if (batElem) batElem.innerText = `🔋 ${level}%`;
             }
-        }, 1000);
+            updateBattery();
+            battery.addEventListener('levelchange', updateBattery);
+        });
+    }
 
-        if ('getBattery' in navigator) {
-            navigator.getBattery().then(battery => {
-                const updateBattery = () => {
-                    let bDisp = document.getElementById('battery-display');
-                    if (bDisp) bDisp.innerText = `🔋 ${Math.round(battery.level * 100)}%`;
-                };
-                updateBattery();
-                battery.addEventListener('levelchange', updateBattery);
-            });
-        }
-    });
+    render();
+    checkChangelog();
 </script>
 </body>
 </html>
