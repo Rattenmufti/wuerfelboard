@@ -1329,31 +1329,39 @@
         }, 500);
     }
 
-    function undoMove() {
-        if (isArcView || isLocked || undoHistory.length === 0) return;
-        if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
-        pendingEndGame = false;
-        isLocked = true;
-        const buttons = document.querySelectorAll('.pad-btn');
-        buttons.forEach(b => b.disabled = true);
+// Sound einmalig am Anfang deines Scripts laden (falls noch nicht geschehen)
+const backSound = new Audio('zurueck.mp3');
 
-        const lastState = undoHistory.pop();
-        scores = JSON.parse(JSON.stringify(lastState.scores));
-        focus = { ...lastState.focus };
-        
-        save();
-        render();
+function undoMove() {
+    if (isArcView || isLocked || undoHistory.length === 0) return;
 
-        setTimeout(() => {
-            const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
-            if (el) {
-                el.focus();
-                scrollCheck(el);
-            }
-            isLocked = false;
-            buttons.forEach(b => b.disabled = false);
-        }, 500);
-    }
+    // Sound sofort abspielen
+    backSound.currentTime = 0;
+    backSound.play().catch(e => console.log("Audio Error:", e));
+
+    if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+    pendingEndGame = false;
+    isLocked = true;
+    const buttons = document.querySelectorAll('.pad-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    const lastState = undoHistory.pop();
+    scores = JSON.parse(JSON.stringify(lastState.scores));
+    focus = { ...lastState.focus };
+    
+    save();
+    render();
+
+    setTimeout(() => {
+        const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
+        if (el) {
+            el.focus();
+            scrollCheck(el);
+        }
+        isLocked = false;
+        buttons.forEach(b => b.disabled = false);
+    }, 500);
+}
 
     function jumpToNext() {
         const sorted = getSortedActive();
