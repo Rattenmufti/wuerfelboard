@@ -393,6 +393,8 @@
         body.mobile-mode .pad-page { 
             grid-template-columns: repeat(4, 1fr) !important; 
             grid-template-rows: repeat(6, 1fr) !important; 
+            grid-auto-rows: 1fr !important;
+            align-content: stretch !important;
         }
         body.mobile-mode .pad-viewport { height: auto !important; }
         @media (orientation: landscape) {
@@ -2369,57 +2371,57 @@
                 <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
                 <div class="nerd-stat-row">
                     <span class="nerd-stat-label">Längste Partie:</span>
-                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
+                    <span class="nerd-stat-val">${mostRoundsGame.rounds > 0 ? mostRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
                 </div>
                 <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
-                <div class="nerd-stat-row" style="margin-top:2px;">
-                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
-                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
-                </div>
             </div>
 
             <div class="nerd-card-clean">
-                <div class="nerd-card-header">📊 Kategorie-Könige</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">350 – 450:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">500 – 700:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">750 – 950:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">1000 – 1450:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
-                </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">1500+:</span>
-                    <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
-                </div>
-            </div>
-
-            <div class="nerd-card-clean">
-                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
+                <div class="nerd-card-header">💥 Highscores & Punkte</div>
                 <div class="nerd-stat-row">
                     <span class="nerd-stat-label">Höchster Einzelwurf:</span>
-                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
+                    <span class="nerd-stat-val">${highestSingleTurn.score > 0 ? highestSingleTurn.score + ' Pkt.' : 'k. A.'}</span>
                 </div>
                 <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
-                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Bester Durchschn. (pro Wurf):</span>
+                    <span class="nerd-stat-val">${bestAvgPlayer.avg > 0 ? bestAvgPlayer.avg + ' Pkt.' : 'k. A.'}</span>
                 </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
-                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
+                <div class="nerd-stat-sub" style="text-align:right;">(${bestAvgPlayer.name})</div>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Meiste Punkte Gesamt:</span>
+                    <span class="nerd-stat-val">${pointsKing.points > 0 ? pointsKing.points.toLocaleString() + ' Pkt.' : 'k. A.'}</span>
                 </div>
-                <div class="nerd-stat-row">
-                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
+                <div class="nerd-stat-sub" style="text-align:right;">(${pointsKing.name})</div>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Punkte Aller Spieler Gesamt:</span>
                     <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
+                </div>
+            </div>
+
+            <div class="nerd-card-clean" style="grid-column: 1/-1;">
+                <div class="nerd-card-header">🏆 Kategorie-Könige (Meiste Würfe in Klasse)</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 4px;">
+                    <div class="nerd-stat-row">
+                        <span class="nerd-stat-label">350 - 450:</span>
+                        <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
+                    </div>
+                    <div class="nerd-stat-row">
+                        <span class="nerd-stat-label">500 - 700:</span>
+                        <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
+                    </div>
+                    <div class="nerd-stat-row">
+                        <span class="nerd-stat-label">750 - 950:</span>
+                        <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
+                    </div>
+                    <div class="nerd-stat-row">
+                        <span class="nerd-stat-label">1000 - 1450:</span>
+                        <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
+                    </div>
+                    <div class="nerd-stat-row">
+                        <span class="nerd-stat-label">Über 1500:</span>
+                        <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -2427,105 +2429,87 @@
         view.classList.add('active');
     }
 
-    window.addEventListener('scroll', () => {
-        const stickyCopy = document.getElementById('raceTrackStickyCopy');
-        
-        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
-            if (stickyCopy.style.display !== 'block') {
-                stickyCopy.style.display = 'block';
-                renderRaceTrack();
-            }
-        } else {
-            stickyCopy.style.display = 'none';
-        }
-    }, { passive: true });
+    // Dynamic Pad-Page Setup
+    function buildPadPages() {
+        const p2 = document.getElementById('padPage2');
+        const p3 = document.getElementById('padPage3');
+        if(!p2 || !p3) return;
 
-    // Globale Aktivitätstracking für Inaktivitäts-Timer
-    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
-        window.addEventListener(evt, () => {
-            if (isPaused) {
-                resumeFromPause();
-            } else {
-                resetInactivityTimer();
-            }
-        }, { passive: true });
-    });
+        p2.innerHTML = '';
+        p3.innerHTML = '';
 
-    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
-    
-    const page1 = document.getElementById('padPage1');
-    for(let v=350; v<=1300; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page1.appendChild(b); 
-    }
+        const page2Values = [350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1300, 1350, 1400, 1450, 1500];
+        page2Values.forEach(v => {
+            const btn = document.createElement('button');
+            btn.className = 'pad-btn';
+            btn.innerText = v;
+            btn.onclick = () => setV(v);
+            p2.appendChild(btn);
+        });
 
-    const page2 = document.getElementById('padPage2');
-    for(let v=1350; v<=2500; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page2.appendChild(b); 
-    }
-
-    const page3 = document.getElementById('padPage3');
-    for(let v=2550; v<=3700; v+=50) { 
-        const b = document.createElement('button'); 
-        b.className='pad-btn'; 
-        b.innerText=v; 
-        b.onclick=()=> { setV(v); }; 
-        page3.appendChild(b); 
-    }
-
-    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
-    function updateTimeAndDuration() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const timeElem = document.getElementById('time-display');
-        if (timeElem) {
-            timeElem.innerText = `${hours}:${minutes}`;
-        }
-
-        const elapsedElem = document.getElementById('elapsed-display');
-        if (elapsedElem) {
-            let diffMs = accumulatedTimeMs;
-            if (gameActive && currentTurnStartTime && !isPaused) {
-                diffMs += (now.getTime() - currentTurnStartTime);
-            }
-            const totalSec = Math.floor(diffMs / 1000);
-            const eHours = Math.floor(totalSec / 3600);
-            const eMin = Math.floor((totalSec % 3600) / 60);
-            const eSec = totalSec % 60;
-            
-            if (eHours > 0) {
-                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
-            } else {
-                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
-            }
-        }
-    }
-
-    setInterval(updateTimeAndDuration, 1000);
-    updateTimeAndDuration();
-
-    if ('getBattery' in navigator) {
-        navigator.getBattery().then(battery => {
-            function updateBattery() {
-                const level = Math.round(battery.level * 100);
-                const batElem = document.getElementById('battery-display');
-                if (batElem) batElem.innerText = `🔋 ${level}%`;
-            }
-            updateBattery();
-            battery.addEventListener('levelchange', updateBattery);
+        const page3Values = [1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 1950, 2000, 2050, 2100, 2150, 2200, 2250, 2300, 2350, 2400, 2450, 2500, 2550, 2600, 2650, 2700];
+        page3Values.forEach(v => {
+            const btn = document.createElement('button');
+            btn.className = 'pad-btn';
+            btn.innerText = v;
+            btn.onclick = () => setV(v);
+            p3.appendChild(btn);
         });
     }
 
+    buildPadPages();
     render();
     checkChangelog();
+
+    // System-Uhrzeit, Akku-Stand und Rundenzeit-Aktualisierung
+    function updateStatusBar() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const timeStr = `${hh}:${mm}`;
+        
+        const timeDisp = document.getElementById('time-display');
+        if (timeDisp) timeDisp.innerText = timeStr;
+
+        const elapsedDisp = document.getElementById('elapsed-display');
+        if (elapsedDisp) {
+            let dur = accumulatedTimeMs;
+            if (gameActive && currentTurnStartTime && !isPaused) {
+                dur += (Date.now() - currentTurnStartTime);
+            }
+            let totalSec = Math.floor(dur / 1000);
+            let eMin = String(Math.floor(totalSec / 60)).padStart(2, '0');
+            let eSec = String(totalSec % 60).padStart(2, '0');
+            elapsedDisp.innerText = `⏱️ ${eMin}:${eSec}`;
+        }
+    }
+
+    setInterval(updateStatusBar, 1000);
+    updateStatusBar();
+
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBatteryInfo() {
+                const level = Math.round(battery.level * 100);
+                const batDisp = document.getElementById('battery-display');
+                if (batDisp) {
+                    batDisp.innerText = `🔋 ${level}%`;
+                }
+            }
+            updateBatteryInfo();
+            battery.addEventListener('levelchange', updateBatteryInfo);
+        }).catch(err => {
+            const batDisp = document.getElementById('battery-display');
+            if (batDisp) batDisp.style.display = 'none';
+        });
+    } else {
+        const batDisp = document.getElementById('battery-display');
+        if (batDisp) batDisp.style.display = 'none';
+    }
+
+    window.addEventListener('resize', () => {
+        renderRaceTrack();
+    });
 </script>
 </body>
 </html>
