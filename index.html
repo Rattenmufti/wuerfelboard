@@ -935,7 +935,6 @@
     let autoPageReturnTimer = null;
     let autoEndTimer = null;
     let pendingEndGame = false;
-    let isSavingGame = false;
     let matchEndChartInstances = [];
 
     // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
@@ -1676,7 +1675,7 @@
     }
 
     function checkGameAutoEnd(sorted) {
-        if (isArcView || pendingEndGame || isSavingGame) return;
+        if (isArcView || pendingEndGame) return;
         if (!sorted || sorted.length === 0) return;
 
         let lastPlayedRow = -1;
@@ -1711,9 +1710,6 @@
     }
 
     function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
-        if (isSavingGame) return;
-        isSavingGame = true;
-
         const durationMs = stopTimerAndGetDuration();
 
         let winners = playerTotals.filter(item => item.tot >= 10000);
@@ -1853,7 +1849,6 @@
                 checkForUpdates();
                 if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
-                isSavingGame = false;
                 scores = [Array(MAX_P).fill("")]; 
                 undoHistory = [];
                 resetGameTimer();
@@ -1872,7 +1867,6 @@
                 modal.classList.remove('game-over-modal');
                 destroyCharts();
                 pendingEndGame = false;
-                isSavingGame = false;
                 autoEndTimer = null;
             }
         );
@@ -1986,7 +1980,6 @@
                 undoHistory = [];
                 if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
                 pendingEndGame = false;
-                isSavingGame = false;
                 resetGameTimer();
                 save(); render(); 
             } catch(err) { 
@@ -2112,9 +2105,6 @@
     }
 
     function finishGame(winText) {
-        if (isSavingGame) return;
-        isSavingGame = true;
-
         checkForUpdates();
         if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
         pendingEndGame = false;
@@ -2146,7 +2136,6 @@
         recalculateKingOfTheHill();
         render(); 
         save();
-        isSavingGame = false;
     }
 
     /* --- NERD STATISTIK FUNKTIONEN --- */
@@ -2251,13 +2240,120 @@
                             // Gleichstand oder neuer Rekord bei Ronny-Streaks
                             if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
                                 longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentRonnyStreaksInGame[pName] === longestRonnyStreak.count && currentRonnyStreaksInGame[pName] > 0) {
+                                if (!longestRonnyStreak.players.includes(pName)) {
+                                    longestRonnyStreak.players.push(pName);
+                                }
                             }
+
+                            currentNoRonnyStreaksInGame[pName] = 0;
+                        } else {
+                            if (val > highestSingleTurn.score) {
+                                highestSingleTurn = { score: val, player: pName, date: g.d };
+                            }
+
+                            currentNoRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei No-Ronny-Streaks
+                            if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
+                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentNoRonnyStreaksInGame[pName] === longestNoRonnyStreak.count && currentNoRonnyStreaksInGame[pName] > 0) {
+                                if (!longestNoRonnyStreak.players.includes(pName)) {
+                                    longestNoRonnyStreak.players.push(pName);
+                                }
+                            }
+
+                            currentRonnyStreaksInGame[pName] = 0;
+
+                            if (val <= 450) playerStatsMap[pName].catSmall++;
+                            else if (val <= 700) playerStatsMap[pName].catMed++;
+                            else if (val <= 950) playerStatsMap[pName].catBig++;
+                            else if (val <= 1500) playerStatsMap[pName].catElite++;
+                            else playerStatsMap[pName].catMeister++;
                         }
                     }
                 });
             });
+
+            if (currentGameRonnys > gameWithMostRonnys.ronnys) {
+                gameWithMostRonnys = { ronnys: currentGameRonnys, date: g.d };
+            }
         });
+
+        let avgRoundsPerGame = totalGames > 0 ? (totalRoundsPlayed / totalGames).toFixed(1) : 0;
+        let avgRonnysPerGame = totalGames > 0 ? (totalRonnysGlobal / totalGames).toFixed(1) : 0;
+
+        let ronnyKingName = "Niemand", highestRonnyQuote = -1;
+        let highestAvgTurnPlayer = "Niemand", maxAvgTurnVal = -1;
+
+        Object.keys(playerStatsMap).forEach(pName => {
+            let pData = playerStatsMap[pName];
+            if (pData.turns > 0) {
+                let rQuote = (pData.ronnys / pData.turns) * 100;
+                if (rQuote > highestRonnyQuote) {
+                    highestRonnyQuote = rQuote;
+                    ronnyKingName = pName;
+                }
+
+                let avgTurn = pData.totalPoints / pData.turns;
+                if (avgTurn > maxAvgTurnVal) {
+                    maxAvgTurnVal = avgTurn;
+                    highestAvgTurnPlayer = pName;
+                }
+            }
+        });
+
+        let ronnyStreakPlayersStr = longestRonnyStreak.players.length > 0 ? longestRonnyStreak.players.join(", ") : "-";
+        let noRonnyStreakPlayersStr = longestNoRonnyStreak.players.length > 0 ? longestNoRonnyStreak.players.join(", ") : "-";
+
+        let html = `
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">📊 ALLGEMEIN</div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Spiele Gesamt:</span><span class="nerd-stat-val">${totalGames}</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Runden Gesamt:</span><span class="nerd-stat-val">${totalRoundsPlayed}</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Punkte Gesamt:</span><span class="nerd-stat-val">${totalPointsGlobal.toLocaleString('de-DE')}</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Ronnys Gesamt:</span><span class="nerd-stat-val">${totalRonnysGlobal}</span></div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">📈 DURCHSCHNITTE</div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Ø Runden / Spiel:</span><span class="nerd-stat-val">${avgRoundsPerGame}</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Ø Ronnys / Spiel:</span><span class="nerd-stat-val">${avgRonnysPerGame}</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Höchster Turn-Ø:</span><span class="nerd-stat-val">${highestAvgTurnPlayer} (${maxAvgTurnVal > 0 ? Math.round(maxAvgTurnVal) : 0} Pkt)</span></div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Höchste Ronny-Quote:</span><span class="nerd-stat-val">${ronnyKingName} (${highestRonnyQuote >= 0 ? highestRonnyQuote.toFixed(1) : 0}%)</span></div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">⏱️ SPIELDAUER & REKORDE</div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Kürzestes Spiel:</span><span class="nerd-stat-val">${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : "k. A."}</span></div>
+                <div class="nerd-stat-sub">${fastestGame.date ? fastestGame.date : ''}</div>
+                <div class="nerd-stat-row" style="margin-top:4px;"><span class="nerd-stat-label">Längstes Spiel:</span><span class="nerd-stat-val">${slowestGame.time > 0 ? formatDuration(slowestGame.time) : "k. A."}</span></div>
+                <div class="nerd-stat-sub">${slowestGame.date ? slowestGame.date : ''}</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🎲 RUNDEN-REKORDE</div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Wenigste Runden:</span><span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + " Runden" : "k. A."}</span></div>
+                <div class="nerd-stat-sub">${leastRoundsGame.date ? leastRoundsGame.date : ''}</div>
+                <div class="nerd-stat-row" style="margin-top:4px;"><span class="nerd-stat-label">Meiste Runden:</span><span class="nerd-stat-val">${mostRoundsGame.rounds > 0 ? mostRoundsGame.rounds + " Runden" : "k. A."}</span></div>
+                <div class="nerd-stat-sub">${mostRoundsGame.date ? mostRoundsGame.date : ''}</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🔥 STREAKS & EXTREME</div>
+                <div class="nerd-stat-row"><span class="nerd-stat-label">Meiste Ronnys in 1 Spiel:</span><span class="nerd-stat-val">${gameWithMostRonnys.ronnys} Ronnys</span></div>
+                <div class="nerd-stat-sub">${gameWithMostRonnys.date ? gameWithMostRonnys.date : ''}</div>
+                <div class="nerd-stat-row" style="margin-top:4px;"><span class="nerd-stat-label">Ronny-Serie:</span><span class="nerd-stat-val">${longestRonnyStreak.count}x (${ronnyStreakPlayersStr})</span></div>
+                <div class="nerd-stat-row" style="margin-top:4px;"><span class="nerd-stat-label">Serie OHNE Ronny:</span><span class="nerd-stat-val">${longestNoRonnyStreak.count}x (${noRonnyStreakPlayersStr})</span></div>
+                <div class="nerd-stat-row" style="margin-top:4px;"><span class="nerd-stat-label">Höchster Einzelwurf:</span><span class="nerd-stat-val">${highestSingleTurn.score > 0 ? highestSingleTurn.player + " (" + highestSingleTurn.score + ")" : "k. A."}</span></div>
+            </div>
+        `;
+
+        content.innerHTML = html;
+        view.classList.add('active');
     }
+
+    render();
 </script>
 </body>
 </html>
