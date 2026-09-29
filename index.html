@@ -1304,10 +1304,11 @@ function setV(v) {
         undoHistory.shift();
     }
 
-    // --- ZUFÄLLIGE SOUNDS DEFINIEREN ---
+    // --- SOUND-AUSWAHL BAUSTEIN ---
     let soundFile;
+
     if (v === 0) {
-        // Alle Sounds aus deinem Ordner inkl. und-weg.mp3
+        // 1. Ronny / Nuller-Sounds
         const zeroSounds = [
             'und-weg.mp3',
             'alles-nullen-schnell.mp3',
@@ -1319,12 +1320,31 @@ function setV(v) {
             'orginale-nichtskoenner.mp3',
             'zonk.mp3'
         ];
-        
-        // Zufälligen Sound aus der Liste auswählen
-        const randomIndex = Math.floor(Math.random() * zeroSounds.length);
-        soundFile = zeroSounds[randomIndex];
+        soundFile = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+
+    /* 
+    } else if (v >= 1000 && v <= 1600) {
+        // 2. Sanfter Jubel (1000 bis 1600 Punkte)
+        const gentleJubilation = [
+            'sanfter-jubel1.mp3',
+            'sanfter-jubel2.mp3',
+            'applause-mild.mp3'
+        ];
+        soundFile = gentleJubilation[Math.floor(Math.random() * gentleJubilation.length)];
+
+    } else if (v >= 1650) {
+        // 3. Eskalation (ab 1650 Punkte)
+        const escalationSounds = [
+            'eskalation1.mp3',
+            'eskalation2.mp3',
+            'mega-cheer.mp3',
+            'feuerwerk.mp3'
+        ];
+        soundFile = escalationSounds[Math.floor(Math.random() * escalationSounds.length)];
+    */
+
     } else {
-        // Standard-Sound für andere Werte
+        // 4. Standard-Punkte (solange die Blöcke oben auskommentiert sind: für alle Werte außer 0)
         soundFile = 'punkte.mp3';
     }
 
