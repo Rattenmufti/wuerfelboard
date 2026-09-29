@@ -1283,51 +1283,76 @@
         }
     }
 
-    function setV(v) { 
-        if(isArcView || isLocked) return; 
-        
-        startTimerIfNeeded();
+ function setV(v) { 
+    if(isArcView || isLocked) return; 
+    
+    startTimerIfNeeded();
 
-        if (focus.pI === undefined || focus.r === undefined) {
-            const sorted = getSortedActive();
-            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
-        }
-        isLocked = true;
-        const buttons = document.querySelectorAll('.pad-btn');
-        buttons.forEach(b => b.disabled = true);
-        
-        undoHistory.push({
-            scores: JSON.parse(JSON.stringify(scores)),
-            focus: { ...focus }
-        });
-        if (undoHistory.length > 3) {
-            undoHistory.shift();
-        }
-
-        const soundFile = (v === 0) ? 'und-weg.mp3' : 'punkte.mp3';
-        playCustomAudio(soundFile);
-
-        scores[focus.r][focus.pI] = v.toString(); 
-        isQuickPress = true;
-        render(); 
-
-        const vp = document.getElementById('padViewport');
-        if (vp) {
-            const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
-            if (pageIdx > 0) {
-                if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
-                autoPageReturnTimer = setTimeout(() => {
-                    vp.scrollTo({ left: 0, behavior: 'smooth' });
-                }, 1000);
-            }
-        }
-
-        setTimeout(() => { 
-            jumpToNext(); 
-            isLocked = false; 
-            buttons.forEach(b => b.disabled = false); 
-        }, 500);
+    if (focus.pI === undefined || focus.r === undefined) {
+        const sorted = getSortedActive();
+        focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
     }
+    isLocked = true;
+    const buttons = document.querySelectorAll('.pad-btn');
+    buttons.forEach(b => b.disabled = true);
+    
+    undoHistory.push({
+        scores: JSON.parse(JSON.stringify(scores)),
+        focus: { ...focus }
+    });
+    if (undoHistory.length > 3) {
+        undoHistory.shift();
+    }
+
+    // --- ZUFÄLLIGE SOUNDS DEFINIEREN ---
+    let soundFile;
+    if (v === 0) {
+        // Alle Sounds aus deinem Ordner inkl. und-weg.mp3
+        const zeroSounds = [
+            'und-weg.mp3',
+            'alles-nullen-schnell.mp3',
+            'garnix.mp3',
+            'ich-hab-garnix-gemacht.mp3',
+            'mach-garnix.mp3',
+            'mop-mop-mop.mp3',
+            'nicht-clever.mp3',
+            'orginale-nichtskoenner.mp3',
+            'zonk.mp3'
+        ];
+        
+        // Zufälligen Sound aus der Liste auswählen
+        const randomIndex = Math.floor(Math.random() * zeroSounds.length);
+        soundFile = zeroSounds[randomIndex];
+    } else {
+        // Standard-Sound für andere Werte
+        soundFile = 'punkte.mp3';
+    }
+
+    // Ausgewählten Sound abspielen
+    playCustomAudio(soundFile);
+
+    scores[focus.r][focus.pI] = v.toString(); 
+    isQuickPress = true;
+    render(); 
+
+    const vp = document.getElementById('padViewport');
+    if (vp) {
+        const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+        if (pageIdx > 0) {
+            if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
+            autoPageReturnTimer = setTimeout(() => {
+                vp.scrollTo({ left: 0, behavior: 'smooth' });
+            }, 1000);
+        }
+    }
+
+    setTimeout(() => { 
+        jumpToNext(); 
+        isLocked = false; 
+        buttons.forEach(b => b.disabled = false); 
+    }, 500);
+}
+
 
 // Sound einmalig am Anfang deines Scripts laden (falls noch nicht geschehen)
 const backSound = new Audio('zurueck.mp3');
