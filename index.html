@@ -663,6 +663,77 @@
             top: -20px;
         }
 
+    /* --- XXL ZAHLEN-POPUP ANIMATION --- */
+.number-pop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    /* Verhindert horizontales Scrollen/Überlaufen garantiert */
+    box-sizing: border-box;
+    padding: 0 4vw; 
+}
+
+.number-pop-text {
+    /* 
+       - Hochformat (Portrait): 45vw reicht für die breitesten Zahlen aus, ohne überzustehen.
+       - Querformat (Landscape): 70vh nutzt die Bildschirmhöhe auf Desktops richtig gut aus.
+    */
+    font-size: min(38vw, 70vh); 
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 35px rgba(230, 126, 34, 0.8), 0 10px 30px rgba(0,0,0,0.8);
+    line-height: 1;
+    user-select: none;
+    transform: scale(0);
+    opacity: 0;
+    white-space: nowrap;
+    will-change: transform, opacity;
+    animation: flyExpandPulseExit 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+
+
+@keyframes flyExpandPulseExit {
+    /* 0.0s - 0.5s: Warten (Verzögerung nach Klick) */
+    0%, 20% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    /* 0.5s - 1.1s: Aus dem Hintergrund einfliegen & auf volle Breite ausdehnen */
+    44% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 1.1s - 1.7s: 1. Pulsieren */
+    56% {
+        transform: scale(1.15);
+    }
+    68% {
+        transform: scale(1);
+    }
+    /* 1.7s - 2.3s: 2. Pulsieren */
+    80% {
+        transform: scale(1.15);
+    }
+    92% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 2.3s - 2.8s: Verschwinden (unter 3s Gesamtdauer) */
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+
         /* CHANGELOG STYLE */
         .changelog-list { text-align: left; margin: 15px 0; padding-left: 20px; font-size: 0.9rem; line-height: 1.5; }
         .changelog-list li { margin-bottom: 6px; }
@@ -1094,7 +1165,31 @@
                    .replace(/\bDavid\b/gi, pNames[1] || "Spieler 2");
     }
 
+function triggerNumberPop(value) {
+    // Vorheriges Popup entfernen, falls noch eins aktiv ist
+    const oldOverlay = document.getElementById('numberPopOverlay');
+    if (oldOverlay) oldOverlay.remove();
 
+    const overlay = document.createElement('div');
+    overlay.id = 'numberPopOverlay';
+    overlay.className = 'number-pop-overlay';
+
+    const text = document.createElement('div');
+    text.className = 'number-pop-text';
+    text.innerText = value;
+
+    overlay.appendChild(text);
+    document.body.appendChild(overlay);
+
+    // Nach Ablauf der Animation (2.8s) das Element wieder aufräumen
+    setTimeout(() => {
+        if (overlay && overlay.parentNode) {
+            overlay.remove();
+        }
+    }, 2800);
+}
+
+        
     function fixAndRecalculateArchive() {
         let arch = archive || getSafe('10k_archive', []);
         let names = pNames || getSafe('10k_names', ["Spieler 1", "Spieler 2"]);
@@ -1283,9 +1378,11 @@
         }
     }
 
-function setV(v) { 
+ function setV(v) { 
     if(isArcView || isLocked) return; 
     
+       // 🔥 Hier die Animation für die gedrückte Zahl aufrufen:
+    triggerNumberPop(v);
     startTimerIfNeeded();
 
     if (focus.pI === undefined || focus.r === undefined) {
@@ -1304,7 +1401,7 @@ function setV(v) {
         undoHistory.shift();
     }
 
-    // --- SOUND-AUSWAHL BAUSTEIN ---
+     // --- SOUND-AUSWAHL BAUSTEIN ---
     let soundFile;
 
     if (v === 0) {
@@ -1351,6 +1448,8 @@ function setV(v) {
     // Ausgewählten Sound abspielen
     playCustomAudio(soundFile);
 
+    playCustomAudio(soundFile);
+
     scores[focus.r][focus.pI] = v.toString(); 
     isQuickPress = true;
     render(); 
@@ -1372,8 +1471,6 @@ function setV(v) {
         buttons.forEach(b => b.disabled = false); 
     }, 500);
 }
-
-
 
 
 // Sound einmalig am Anfang deines Scripts laden (falls noch nicht geschehen)
