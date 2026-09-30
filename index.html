@@ -1128,6 +1128,14 @@
     let autoEndTimer = null;
     let pendingEndGame = false;
     let matchEndChartInstances = [];
+    // Eindeutige ID für das aktuell laufende Spiel
+let currentGameId = getSafe('10k_currentGameId', null);
+
+if (!currentGameId) {
+    currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
+}
+
 
     // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
     let gameActive = getSafe('10k_gameActive', false);
@@ -1376,17 +1384,21 @@ function triggerNumberPop(value) {
     }
 
     function resetGameTimer() {
-        gameActive = false;
         accumulatedTimeMs = 0;
         currentTurnStartTime = null;
-        isPaused = false;
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        document.getElementById('pauseOverlay').classList.remove('active');
-        
-        localStorage.setItem('10k_gameActive', false);
-        localStorage.setItem('10k_accumulatedTimeMs', 0);
+        gameActive = false;
+        localStorage.removeItem('10k_accumulatedTimeMs');
         localStorage.removeItem('10k_currentTurnStartTime');
+        localStorage.setItem('10k_gameActive', JSON.stringify(false));
+        generateNewGameId(); // <-- HIER EINFÜGEN
     }
+
+    // Die neue Hilfsfunktion direkt darunter:
+    function generateNewGameId() {
+        currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
+    }
+
 
     function sanitizeOldNames(text) {
         if (!text) return "";
@@ -2067,7 +2079,7 @@ function undoMove() {
         }, 5000);
     }
 
-    function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
+      function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
         const durationMs = stopTimerAndGetDuration();
 
         let winners = playerTotals.filter(item => item.tot >= 10000);
@@ -2127,6 +2139,26 @@ function undoMove() {
             }
         });
 
+        // ==========================================
+        // DUPLIKAT-SCHUTZ BEIM SPEICHERN (NUR 1X SPEICHERN)
+        // ==========================================
+        const alreadySaved = archive.some(item => item.id === currentGameId);
+
+        if (!alreadySaved) {
+            archive.unshift({ 
+                id: currentGameId,
+                d: new Date().toLocaleString(), 
+                w: winText, 
+                s: JSON.parse(JSON.stringify(scores)), 
+                names: JSON.parse(JSON.stringify(pNames)),
+                durationMs: durationMs
+            });
+            recalculateKingOfTheHill();
+            save();
+            render();
+        }
+
+        // Ab hier wird der Inhalt des Popups zusammengebaut:
         const categoryColors = [
             '#e74c3c', // Ronnys (0)
             '#3498db', // 350 - 450
@@ -2178,30 +2210,18 @@ function undoMove() {
         `;
 
         const modal = document.getElementById('customModal');
-        modal.classList.add('game-over-modal');
+        if (modal) modal.classList.add('game-over-modal');
 
         const destroyCharts = () => {
             matchEndChartInstances.forEach(inst => inst.destroy());
             matchEndChartInstances = [];
         };
 
-        // Spiel sofort beim Öffnen des Popups in die Historie eintragen & abspeichern
-        archive.unshift({ 
-            d: new Date().toLocaleString(), 
-            w: winText, 
-            s: JSON.parse(JSON.stringify(scores)), 
-            names: JSON.parse(JSON.stringify(pNames)),
-            durationMs: durationMs
-        });
-        recalculateKingOfTheHill();
-        save();
-        render();
-
         openConfirm(
             "Partie Beendet! 🏆",
             "", 
             () => {
-                modal.classList.remove('game-over-modal');
+                if (modal) modal.classList.remove('game-over-modal');
                 destroyCharts();
                 // Neue Partie zurücksetzen
                 checkForUpdates();
@@ -2222,7 +2242,7 @@ function undoMove() {
                 save();
             },
             () => {
-                modal.classList.remove('game-over-modal');
+                if (modal) modal.classList.remove('game-over-modal');
                 destroyCharts();
                 pendingEndGame = false;
                 autoEndTimer = null;
@@ -2230,7 +2250,7 @@ function undoMove() {
         );
 
         const modalTextElem = document.getElementById('customModalText');
-        modalTextElem.innerHTML = msgHTML;
+        if (modalTextElem) modalTextElem.innerHTML = msgHTML;
 
         // Render-Charts ohne eigene Legende für aufgeräumte Optik
         setTimeout(() => {
@@ -2252,6 +2272,9 @@ function undoMove() {
                     }
                 }
             });
+
+            // Hier machst du in deinem Code mit dem Erstellen der Chart-Instanzen weiter...
+
 
             // 1. GESAMTVERTEILUNGS-DIAGRAMM
             const ctxTotal = document.getElementById('endChart_TOTAL');
