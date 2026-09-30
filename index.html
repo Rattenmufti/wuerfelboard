@@ -850,8 +850,6 @@
         <div class="custom-modal-title">Was ist neu in v<span class="app-version-text"></span>? 🚀</div>
         <ul class="changelog-list">
             <li>Nerd-Statistik hinzugefügt</li>
-            <li>Ploppende Zahlen ergänzt</li>
-            <li>Neue Töne hinzugefügt</li>
             <li>Rundenzeiterfassung hinzugefügt</li>
             <li>Pausenmodus nach 2 Minuten inaktivität eingefügt</li>
             <li>Akkuanzeige hinzugefügt (nur Android)</li>
@@ -1131,6 +1129,10 @@ for (let val = 350; val <= 3700; val += 50) {
     VALID_PAD_VALUES.push(val);
 }
 
+// NEU: Zähler & zufälliges Ziel (zwischen 4 und 8) VOR der Funktion anlegen
+let zeroCounter = 0;
+let nextExplosionTarget = Math.floor(Math.random() * 5) + 4;
+
 function triggerNumberPop(value) {
     const oldOverlay = document.getElementById('numberPopOverlay');
     if (oldOverlay) oldOverlay.remove();
@@ -1139,8 +1141,19 @@ function triggerNumberPop(value) {
     overlay.id = 'numberPopOverlay';
     overlay.className = 'number-pop-overlay';
 
-    // SPEZIALFALL: Ronny-Null!
+    // NEU: Steuerung über den Zähler statt reine Prozent-Chance
+    let triggerExplosion = false;
     if (value === 0 || value === '0') {
+        zeroCounter++;
+        if (zeroCounter >= nextExplosionTarget) {
+            triggerExplosion = true;
+            zeroCounter = 0; // Zähler zurücksetzen
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 4; // Neues Ziel zwischen 4 und 8 würfeln
+        }
+    }
+
+    // SPEZIALFALL: Ronny-Null mit Explosion
+    if ((value === 0 || value === '0') && triggerExplosion) {
         const container = document.createElement('div');
         container.className = 'shatter-container';
 
@@ -1159,9 +1172,8 @@ function triggerNumberPop(value) {
             text.classList.add('shake-before-pop');
         }, 600);
 
-        // 2. Auf dem Höhepunkt (1.2s): Zahl explodiert in Partikel & 0 knallt rein
+        // 2. Auf dem Höhepunkt (1.8s): Zahl explodiert in Partikel & 0 knallt rein
         setTimeout(() => {
-            const rect = text.getBoundingClientRect();
             text.remove(); // Schein-Zahl löschen
 
             // Schockwelle erzeugen
@@ -1169,14 +1181,14 @@ function triggerNumberPop(value) {
             wave.className = 'shockwave';
             container.appendChild(wave);
 
-            // 8 Trümmerteile in alle Himmelsrichtungen wegschleudern
+            // Trümmerteile wegschleudern
             const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
             for (let i = 0; i < 18; i++) {
                 const shard = document.createElement('div');
                 shard.className = 'shard';
                 shard.innerText = shardChars[i % shardChars.length];
                 
-                const angle = (i / 20) * Math.PI * 2;
+                const angle = (i / 18) * Math.PI * 2;
                 const dist = 300 + Math.random() * 250; // Flugweite
                 const tx = Math.cos(angle) * dist + 'px';
                 const ty = Math.sin(angle) * dist + 'px';
@@ -1189,7 +1201,7 @@ function triggerNumberPop(value) {
                 container.appendChild(shard);
             }
 
-            // Die echte Ronny-Null knallt mit Wucht heraus
+            // Die echte Ronny-Null knallt heraus
             const zeroText = document.createElement('div');
             zeroText.className = 'number-pop-text zero-boom';
             zeroText.innerText = '0';
@@ -1197,22 +1209,27 @@ function triggerNumberPop(value) {
 
         }, 1800);
 
+        // Längeres Cleanup für den langen Explosions-Ablauf
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 4800);
+
     } else {
-        // Normaler Ablauf für alle anderen Werte
+        // Normaler Ablauf für ALLE anderen Zahlen UND für die normalen 0en
         const text = document.createElement('div');
         text.className = 'number-pop-text';
         text.innerText = value;
         overlay.appendChild(text);
         document.body.appendChild(overlay);
-    }
 
-    // Automatisch aufräumen
-    setTimeout(() => {
-        if (overlay && overlay.parentNode) {
-            overlay.remove();
-        }
-    }, 4800);
+        // Standard-Cleanup zeitnah ausführen (z.B. 1,5 Sekunden)
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 1500);
+    }
 }
+
+
     
     function playOscillatorFallback() {
         try {
