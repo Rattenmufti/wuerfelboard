@@ -1168,21 +1168,18 @@ if (!currentGameId) {
     const audioCache = {};
 
 function playCustomAudio(filename) {
-        try {
-            // Ordnerpfad voranstellen:
-            const path = 'audio/' + filename;
-
-            // Überall 'path' statt 'filename' verwenden!
-            if (!audioCache[path]) {
-                audioCache[path] = new Audio(path);
-            }
-            const audio = audioCache[path];
-            audio.currentTime = 0;
-            audio.play().catch(e => playOscillatorFallback());
-        } catch(e) {
-            playOscillatorFallback();
+    try {
+        const path = 'audio/' + filename;
+        if (!audioCache[path]) {
+            audioCache[path] = new Audio(path);
         }
+        const audio = audioCache[path];
+        audio.currentTime = 0;
+        audio.play().catch(e => playOscillatorFallback());
+    } catch(e) {
+        playOscillatorFallback();
     }
+}
 
 // Array mit den echten Pad-Werten (350 bis 3700)
 const VALID_PAD_VALUES = [];
@@ -1190,9 +1187,9 @@ for (let val = 350; val <= 3700; val += 50) {
     VALID_PAD_VALUES.push(val);
 }
 
-// NEU: Zähler & zufälliges Ziel (zwischen 4 und 8) VOR der Funktion anlegen
+// Zähler & zufälliges Ziel (zwischen 2 und 6) VOR der Funktion anlegen
 let zeroCounter = 0;
-let nextExplosionTarget = Math.floor(Math.random() * 5) + 4;
+let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
 
 function triggerNumberPop(value) {
     const oldOverlay = document.getElementById('numberPopOverlay');
@@ -1202,14 +1199,14 @@ function triggerNumberPop(value) {
     overlay.id = 'numberPopOverlay';
     overlay.className = 'number-pop-overlay';
 
-    // NEU: Steuerung über den Zähler statt reine Prozent-Chance
+    // Steuerung über den Zähler
     let triggerExplosion = false;
     if (value === 0 || value === '0') {
         zeroCounter++;
         if (zeroCounter >= nextExplosionTarget) {
             triggerExplosion = true;
             zeroCounter = 0; // Zähler zurücksetzen
-            nextExplosionTarget = Math.floor(Math.random() * 5) + 2; // Neues Ziel zwischen 2 und 6 würfeln
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 2; // Neues Ziel zwischen 2 und 6
         }
     }
 
@@ -1221,28 +1218,31 @@ function triggerNumberPop(value) {
         const text = document.createElement('div');
         text.className = 'number-pop-text';
         
-        // Zufällige gültige Zahl wählen
+        // Zufällige gültige Schein-Zahl wählen
         const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
         text.innerText = fakeNumber;
         container.appendChild(text);
         overlay.appendChild(container);
         document.body.appendChild(overlay);
 
-        // 1. Nach Einfliegen (0.6s) fängt das heftige Rütteln an
+        // Nach 0,5s die gefakte Audio abspielen
+        setTimeout(() => {
+            playCustomAudio(`${fakeNumber}.mp3`);
+        }, 500);
+
+        // 1. Nach Einfliegen (1.0s) fängt das heftige Rütteln an
         setTimeout(() => {
             text.classList.add('shake-before-pop');
-        }, 600);
+        }, 1000);
 
-        // 2. Auf dem Höhepunkt (1.8s): Zahl explodiert in Partikel & 0 knallt rein
+        // 2. Auf dem Höhepunkt (2.8s): Zahl explodiert in Partikel & 0 knallt rein
         setTimeout(() => {
             text.remove(); // Schein-Zahl löschen
 
-            // Schockwelle erzeugen
             const wave = document.createElement('div');
             wave.className = 'shockwave';
             container.appendChild(wave);
 
-            // Trümmerteile wegschleudern
             const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
             for (let i = 0; i < 18; i++) {
                 const shard = document.createElement('div');
@@ -1250,7 +1250,7 @@ function triggerNumberPop(value) {
                 shard.innerText = shardChars[i % shardChars.length];
                 
                 const angle = (i / 18) * Math.PI * 2;
-                const dist = 300 + Math.random() * 250; // Flugweite
+                const dist = 300 + Math.random() * 250;
                 const tx = Math.cos(angle) * dist + 'px';
                 const ty = Math.sin(angle) * dist + 'px';
                 const rot = (Math.random() * 720 - 360) + 'deg';
@@ -1262,18 +1262,17 @@ function triggerNumberPop(value) {
                 container.appendChild(shard);
             }
 
-            // Die echte Ronny-Null knallt heraus
             const zeroText = document.createElement('div');
             zeroText.className = 'number-pop-text zero-boom';
             zeroText.innerText = '0';
             container.appendChild(zeroText);
 
-        }, 1800);
+        }, 2800);
 
-        // Längeres Cleanup für den langen Explosions-Ablauf
+        // Overlay Cleanup
         setTimeout(() => {
             if (overlay && overlay.parentNode) overlay.remove();
-        }, 4800);
+        }, 6500);
 
     } else {
         // Normaler Ablauf für ALLE anderen Zahlen UND für die normalen 0en
@@ -1283,7 +1282,14 @@ function triggerNumberPop(value) {
         overlay.appendChild(text);
         document.body.appendChild(overlay);
 
-        // Standard-Cleanup zeitnah ausführen (z.B. 1,5 Sekunden)
+        // MP3 nach 0,5 Sekunden abspielen
+        if (value !== 0 && value !== '0') {
+            setTimeout(() => {
+                playCustomAudio(`${value}.mp3`);
+            }, 500);
+        }
+
+        // Cleanup nach 3,0 Sekunden
         setTimeout(() => {
             if (overlay && overlay.parentNode) overlay.remove();
         }, 3000);
