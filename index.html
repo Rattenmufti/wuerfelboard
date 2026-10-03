@@ -1165,129 +1165,163 @@ if (!currentGameId) {
         document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
     }
 
+// ==========================================
+    // AUTOMATISCHES AUDIO-PRELOADING VIA GITHUB API
+    // ==========================================
     const audioCache = {};
 
-function playCustomAudio(filename) {
-        try {
-            // Ordnerpfad voranstellen:
-            const path = 'audio/' + filename;
+    // Echte Pad-Werte für die Ronny-Null-Täuschung
+    const VALID_PAD_VALUES = [];
+    for (let val = 350; val <= 3700; val += 50) {
+        VALID_PAD_VALUES.push(val);
+    }
 
-            // Überall 'path' statt 'filename' verwenden!
-            if (!audioCache[path]) {
-                audioCache[path] = new Audio(path);
+    // Lädt dynamisch ALLE .mp3-Dateien aus dem audio/-Ordner auf GitHub
+    async function preloadAllAudioDynamically() {
+        const apiUrl = 'https://api.github.com/repos/Rattenmufti/wuerfelboard/contents/audio';
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('API Fehler: ' + response.statusText);
+            
+            const files = await response.json();
+
+            // Nur MP3-Dateien herausfiltern und vorladen
+            const mp3Files = files.filter(file => file.name.endsWith('.mp3'));
+
+            mp3Files.forEach(file => {
+                const path = 'audio/' + file.name;
+                const audio = new Audio();
+                audio.src = path;
+                audio.preload = 'auto';
+                audioCache[path] = audio;
+            });
+
+            console.log(`[Audio-Preloader] ${mp3Files.length} MP3-Dateien geladen.`);
+        } catch (error) {
+            console.warn('[Audio-Preloader] Dynamisches Laden fehlgeschlagen, nutze Nachladen bei Bedarf:', error);
+        }
+    }
+
+    // Preloading beim Aufruf starten
+    preloadAllAudioDynamically();
+
+    function playCustomAudio(filename) {
+        try {
+            const path = filename.startsWith('audio/') ? filename : 'audio/' + filename;
+            
+            if (audioCache[path]) {
+                const audio = audioCache[path];
+                audio.currentTime = 0;
+                audio.play().catch(e => playOscillatorFallback());
+            } else {
+                // Fallback für den Fall, dass eine Datei noch nicht geladen war
+                const audio = new Audio(path);
+                audioCache[path] = audio;
+                audio.play().catch(e => playOscillatorFallback());
             }
-            const audio = audioCache[path];
-            audio.currentTime = 0;
-            audio.play().catch(e => playOscillatorFallback());
         } catch(e) {
             playOscillatorFallback();
         }
     }
 
-// Array mit den echten Pad-Werten (350 bis 3700)
-const VALID_PAD_VALUES = [];
-for (let val = 350; val <= 3700; val += 50) {
-    VALID_PAD_VALUES.push(val);
-}
+    let zeroCounter = 0;
+    let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
 
-// NEU: Zähler & zufälliges Ziel (zwischen 4 und 8) VOR der Funktion anlegen
-let zeroCounter = 0;
-let nextExplosionTarget = Math.floor(Math.random() * 5) + 4;
+    function triggerNumberPop(value) {
+        const oldOverlay = document.getElementById('numberPopOverlay');
+        if (oldOverlay) oldOverlay.remove();
 
-function triggerNumberPop(value) {
-    const oldOverlay = document.getElementById('numberPopOverlay');
-    if (oldOverlay) oldOverlay.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'numberPopOverlay';
+        overlay.className = 'number-pop-overlay';
 
-    const overlay = document.createElement('div');
-    overlay.id = 'numberPopOverlay';
-    overlay.className = 'number-pop-overlay';
-
-    let triggerExplosion = false;
-    if (value === 0 || value === '0') {
-        zeroCounter++;
-        if (zeroCounter >= nextExplosionTarget) {
-            triggerExplosion = true;
-            zeroCounter = 0;
-            nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
+        let triggerExplosion = false;
+        if (value === 0 || value === '0') {
+            zeroCounter++;
+            if (zeroCounter >= nextExplosionTarget) {
+                triggerExplosion = true;
+                zeroCounter = 0;
+                nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
+            }
         }
-    }
 
-    if ((value === 0 || value === '0') && triggerExplosion) {
-        const container = document.createElement('div');
-        container.className = 'shatter-container';
+        if ((value === 0 || value === '0') && triggerExplosion) {
+            const container = document.createElement('div');
+            container.className = 'shatter-container';
 
-        const text = document.createElement('div');
-        text.className = 'number-pop-text';
-        
-        const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
-        text.innerText = fakeNumber;
-        container.appendChild(text);
-        overlay.appendChild(container);
-        document.body.appendChild(overlay);
+            const text = document.createElement('div');
+            text.className = 'number-pop-text';
+            
+            const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
+            text.innerText = fakeNumber;
+            container.appendChild(text);
+            overlay.appendChild(container);
+            document.body.appendChild(overlay);
 
-        setTimeout(() => {
-            playCustomAudio(`${fakeNumber}.mp3`);
-        }, 500);
+            setTimeout(() => {
+                playCustomAudio(`${fakeNumber}.mp3`);
+            }, 500);
 
-        setTimeout(() => {
-            text.classList.add('shake-before-pop');
-        }, 1000);
+            setTimeout(() => {
+                text.classList.add('shake-before-pop');
+            }, 1000);
 
-        setTimeout(() => {
-            text.remove();
+            setTimeout(() => {
+                text.remove();
 
-            const wave = document.createElement('div');
-            wave.className = 'shockwave';
-            container.appendChild(wave);
+                const wave = document.createElement('div');
+                wave.className = 'shockwave';
+                container.appendChild(wave);
 
-            const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
-            for (let i = 0; i < 18; i++) {
-                const shard = document.createElement('div');
-                shard.className = 'shard';
-                shard.innerText = shardChars[i % shardChars.length];
-                
-                const angle = (i / 18) * Math.PI * 2;
-                const dist = 300 + Math.random() * 250;
-                const tx = Math.cos(angle) * dist + 'px';
-                const ty = Math.sin(angle) * dist + 'px';
-                const rot = (Math.random() * 720 - 360) + 'deg';
+                const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
+                for (let i = 0; i < 18; i++) {
+                    const shard = document.createElement('div');
+                    shard.className = 'shard';
+                    shard.innerText = shardChars[i % shardChars.length];
+                    
+                    const angle = (i / 18) * Math.PI * 2;
+                    const dist = 300 + Math.random() * 250;
+                    const tx = Math.cos(angle) * dist + 'px';
+                    const ty = Math.sin(angle) * dist + 'px';
+                    const rot = (Math.random() * 720 - 360) + 'deg';
 
-                shard.style.setProperty('--tx', tx);
-                shard.style.setProperty('--ty', ty);
-                shard.style.setProperty('--rot', rot);
+                    shard.style.setProperty('--tx', tx);
+                    shard.style.setProperty('--ty', ty);
+                    shard.style.setProperty('--rot', rot);
 
-                container.appendChild(shard);
+                    container.appendChild(shard);
+                }
+
+                const zeroText = document.createElement('div');
+                zeroText.className = 'number-pop-text zero-boom';
+                zeroText.innerText = '0';
+                container.appendChild(zeroText);
+
+            }, 2800);
+
+            setTimeout(() => {
+                if (overlay && overlay.parentNode) overlay.remove();
+            }, 6500);
+
+        } else {
+            const text = document.createElement('div');
+            text.className = 'number-pop-text';
+            text.innerText = value;
+            overlay.appendChild(text);
+            document.body.appendChild(overlay);
+
+            if (value !== 0 && value !== '0') {
+                setTimeout(() => {
+                    playCustomAudio(`${value}.mp3`);
+                }, 500);
             }
 
-            const zeroText = document.createElement('div');
-            zeroText.className = 'number-pop-text zero-boom';
-            zeroText.innerText = '0';
-            container.appendChild(zeroText);
-
-        }, 2800);
-
-        setTimeout(() => {
-            if (overlay && overlay.parentNode) overlay.remove();
-        }, 6500);
-
-    } else {
-        const text = document.createElement('div');
-        text.className = 'number-pop-text';
-        text.innerText = value;
-        overlay.appendChild(text);
-        document.body.appendChild(overlay);
-
-        if (value !== 0 && value !== '0') {
             setTimeout(() => {
-                playCustomAudio(`${value}.mp3`);
-            }, 500);
+                if (overlay && overlay.parentNode) overlay.remove();
+            }, 3000);
         }
-
-        setTimeout(() => {
-            if (overlay && overlay.parentNode) overlay.remove();
-        }, 3000);
     }
-}
 
 
     
@@ -1702,9 +1736,8 @@ const backSound = new Audio('zurueck.mp3');
 function undoMove() {
     if (isArcView || isLocked || undoHistory.length === 0) return;
 
-    // Sound sofort abspielen
-    backSound.currentTime = 0;
-    backSound.play().catch(e => console.log("Audio Error:", e));
+    // Sound über playCustomAudio aus dem audio/-Ordner abspielen
+    playCustomAudio('zurueck.mp3');
 
     if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
     pendingEndGame = false;
