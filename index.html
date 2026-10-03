@@ -1221,119 +1221,135 @@ if (!currentGameId) {
         }
     }
 
-    let zeroCounter = 0;
-    let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
+let zeroCounter = 0;
+let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
 
-    function triggerNumberPop(value) {
-        const oldOverlay = document.getElementById('numberPopOverlay');
-        if (oldOverlay) oldOverlay.remove();
+function triggerNumberPop(value) {
+    const oldOverlay = document.getElementById('numberPopOverlay');
+    if (oldOverlay) oldOverlay.remove();
 
-        const overlay = document.createElement('div');
-        overlay.id = 'numberPopOverlay';
-        overlay.className = 'number-pop-overlay';
+    const overlay = document.createElement('div');
+    overlay.id = 'numberPopOverlay';
+    overlay.className = 'number-pop-overlay';
 
-        let triggerExplosion = false;
-        if (value === 0 || value === '0') {
-            zeroCounter++;
-            if (zeroCounter >= nextExplosionTarget) {
-                triggerExplosion = true;
-                zeroCounter = 0;
-                nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
-            }
-        }
-
-        if ((value === 0 || value === '0') && triggerExplosion) {
-            const container = document.createElement('div');
-            container.className = 'shatter-container';
-
-            const text = document.createElement('div');
-            text.className = 'number-pop-text';
-            
-            const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
-            text.innerText = fakeNumber;
-            container.appendChild(text);
-            overlay.appendChild(container);
-            document.body.appendChild(overlay);
-
-            // 1. Sofort den Punkte-Sound spielen zur Täuschung!
-            playCustomAudio('punkte.mp3');
-
-            // Nach 1.0s Rütteln
-            setTimeout(() => {
-                text.classList.add('shake-before-pop');
-            }, 1000);
-
-            // 2. Nach 2.8s: Explosion in Partikel, 0 knallt rein & Ronny-Sound ertönt
-            setTimeout(() => {
-                text.remove();
-
-                const wave = document.createElement('div');
-                wave.className = 'shockwave';
-                container.appendChild(wave);
-
-                const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
-                for (let i = 0; i < 18; i++) {
-                    const shard = document.createElement('div');
-                    shard.className = 'shard';
-                    shard.innerText = shardChars[i % shardChars.length];
-                    
-                    const angle = (i / 18) * Math.PI * 2;
-                    const dist = 300 + Math.random() * 250;
-                    const tx = Math.cos(angle) * dist + 'px';
-                    const ty = Math.sin(angle) * dist + 'px';
-                    const rot = (Math.random() * 720 - 360) + 'deg';
-
-                    shard.style.setProperty('--tx', tx);
-                    shard.style.setProperty('--ty', ty);
-                    shard.style.setProperty('--rot', rot);
-
-                    container.appendChild(shard);
-                }
-
-                const zeroText = document.createElement('div');
-                zeroText.className = 'number-pop-text zero-boom';
-                zeroText.innerText = '0';
-                container.appendChild(zeroText);
-
-                // Zufälligen Ronny-Nuller-Sound exakt im Momment des Knalls abspielen
-                const zeroSounds = [
-                    'und-weg.mp3',
-                    'alles-nullen-schnell.mp3',
-                    'garnix.mp3',
-                    'ich-hab-garnix-gemacht.mp3',
-                    'mach-garnix.mp3',
-                    'mop-mop-mop.mp3',
-                    'nicht-clever.mp3',
-                    'orginale-nichtskoenner.mp3',
-                    'zonk.mp3'
-                ];
-                const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
-                playCustomAudio(randomZeroSound);
-
-            }, 2800);
-
-            setTimeout(() => {
-                if (overlay && overlay.parentNode) overlay.remove();
-            }, 6500);
-
-        } else {
-            const text = document.createElement('div');
-            text.className = 'number-pop-text';
-            text.innerText = value;
-            overlay.appendChild(text);
-            document.body.appendChild(overlay);
-
-            if (value !== 0 && value !== '0') {
-                setTimeout(() => {
-                    playCustomAudio(`${value}.mp3`);
-                }, 500);
-            }
-
-            setTimeout(() => {
-                if (overlay && overlay.parentNode) overlay.remove();
-            }, 3000);
+    let triggerExplosion = false;
+    if (value === 0 || value === '0') {
+        zeroCounter++;
+        if (zeroCounter >= nextExplosionTarget) {
+            triggerExplosion = true;
+            zeroCounter = 0;
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
         }
     }
+
+    if ((value === 0 || value === '0') && triggerExplosion) {
+        const container = document.createElement('div');
+        container.className = 'shatter-container';
+
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        
+        const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
+        text.innerText = fakeNumber;
+        container.appendChild(text);
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+
+        // 1. Sofort den Punkte-Sound spielen zur Täuschung!
+        playCustomAudio('punkte.mp3');
+
+        // Nach 1.0s Rütteln
+        setTimeout(() => {
+            text.classList.add('shake-before-pop');
+        }, 1000);
+
+        // 2. Nach 2.8s: Explosion in Partikel, 0 knallt rein & Ronny-Sound ertönt
+        setTimeout(() => {
+            text.remove();
+
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            container.appendChild(wave);
+
+            const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
+            for (let i = 0; i < 18; i++) {
+                const shard = document.createElement('div');
+                shard.className = 'shard';
+                shard.innerText = shardChars[i % shardChars.length];
+                
+                const angle = (i / 18) * Math.PI * 2;
+                const dist = 300 + Math.random() * 250;
+                const tx = Math.cos(angle) * dist + 'px';
+                const ty = Math.sin(angle) * dist + 'px';
+                const rot = (Math.random() * 720 - 360) + 'deg';
+
+                shard.style.setProperty('--tx', tx);
+                shard.style.setProperty('--ty', ty);
+                shard.style.setProperty('--rot', rot);
+
+                container.appendChild(shard);
+            }
+
+            const zeroText = document.createElement('div');
+            zeroText.className = 'number-pop-text zero-boom';
+            zeroText.innerText = '0';
+            container.appendChild(zeroText);
+
+            // Zufälligen Ronny-Nuller-Sound exakt im Moment des Knalls abspielen
+            const zeroSounds = [
+                'und-weg.mp3',
+                'alles-nullen-schnell.mp3',
+                'garnix.mp3',
+                'ich-hab-garnix-gemacht.mp3',
+                'mach-garnix.mp3',
+                'mop-mop-mop.mp3',
+                'nicht-clever.mp3',
+                'orginale-nichtskoenner.mp3',
+                'zonk.mp3'
+            ];
+            const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+            playCustomAudio(randomZeroSound);
+
+        }, 2800);
+
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 6500);
+
+    } else {
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        text.innerText = value;
+        overlay.appendChild(text);
+        document.body.appendChild(overlay);
+
+        if (value === 0 || value === '0') {
+            // Normale Null -> Sofort zufälligen Ronny-Sound abspielen
+            const zeroSounds = [
+                'und-weg.mp3',
+                'alles-nullen-schnell.mp3',
+                'garnix.mp3',
+                'ich-hab-garnix-gemacht.mp3',
+                'mach-garnix.mp3',
+                'mop-mop-mop.mp3',
+                'nicht-clever.mp3',
+                'orginale-nichtskoenner.mp3',
+                'zonk.mp3'
+            ];
+            const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+            playCustomAudio(randomZeroSound);
+        } else {
+            // Normale Zahlen -> Sound nach 500ms
+            setTimeout(() => {
+                playCustomAudio(`${value}.mp3`);
+            }, 500);
+        }
+
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 3000);
+    }
+}
 
 
     
