@@ -1649,7 +1649,7 @@ if (!currentGameId) {
 function setV(v) { 
     if(isArcView || isLocked) return; 
 
-    // 🔥 Hier die Animation für die gedrückte Zahl aufrufen:
+    // Animation & Sound-Triggering aufrufen
     triggerNumberPop(v);
     
     startTimerIfNeeded();
@@ -1670,63 +1670,11 @@ function setV(v) {
         undoHistory.shift();
     }
 
-
-    if (v === 0) {
-        // Bei normaler Null sofort spielen (wenn KEINE Explosion läuft)
-        if (!triggerExplosionRunning) { 
-            // soundFile = zeroSound...
-        }
-    } else {
-        soundFile = 'punkte.mp3';
+    // Bei Zahlen > 0 spielt setV sofort den Punkte-Sound.
+    // Bei 0 übernimmt triggerNumberPop komplett das Timing (inkl. Fake-Null & Ronny-Sound).
+    if (v !== 0 && v !== '0') {
+        playCustomAudio('punkte.mp3');
     }
-
-
-    // --- SOUND-AUSWAHL BAUSTEIN ---
-    let soundFile;
-
-    if (v === 0) {
-        // 1. Ronny / Nuller-Sounds
-        const zeroSounds = [
-            'und-weg.mp3',
-            'alles-nullen-schnell.mp3',
-            'garnix.mp3',
-            'ich-hab-garnix-gemacht.mp3',
-            'mach-garnix.mp3',
-            'mop-mop-mop.mp3',
-            'nicht-clever.mp3',
-            'orginale-nichtskoenner.mp3',
-            'zonk.mp3'
-        ];
-        soundFile = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
-
-    /* 
-    } else if (v >= 1000 && v <= 1600) {
-        // 2. Sanfter Jubel (1000 bis 1600 Punkte)
-        const gentleJubilation = [
-            'sanfter-jubel1.mp3',
-            'sanfter-jubel2.mp3',
-            'applause-mild.mp3'
-        ];
-        soundFile = gentleJubilation[Math.floor(Math.random() * gentleJubilation.length)];
-
-    } else if (v >= 1650) {
-        // 3. Eskalation (ab 1650 Punkte)
-        const escalationSounds = [
-            'eskalation1.mp3',
-            'eskalation2.mp3',
-            'mega-cheer.mp3',
-            'feuerwerk.mp3'
-        ];
-        soundFile = escalationSounds[Math.floor(Math.random() * escalationSounds.length)];
-    */
-
-    } else {
-        // 4. Standard-Punkte (solange die Blöcke oben auskommentiert sind: für alle Werte außer 0)
-        soundFile = 'punkte.mp3';
-    }
-
-    // Ausgewählten Sound abspielen
-    playCustomAudio(soundFile);
 
     scores[focus.r][focus.pI] = v.toString(); 
     isQuickPress = true;
@@ -1750,11 +1698,6 @@ function setV(v) {
     }, 500);
 }
 
-
-
-
-// Sound einmalig am Anfang deines Scripts laden (falls noch nicht geschehen)
-const backSound = new Audio('zurueck.mp3');
 
 function undoMove() {
     if (isArcView || isLocked || undoHistory.length === 0) return;
