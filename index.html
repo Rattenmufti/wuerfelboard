@@ -240,79 +240,79 @@
         }
 
         /* Container für die zerspringenden Splitter */
-        .shatter-container {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+.shatter-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        /* Heftiges Wackeln vor der Explosion */
-        @keyframes violentShake {
-            0% { transform: scale(1) translate(0, 0) rotate(0deg); }
-            20% { transform: scale(1.05) translate(-8px, 6px) rotate(-6deg); }
-            40% { transform: scale(1.1) translate(8px, -6px) rotate(6deg); }
-            60% { transform: scale(1.15) translate(-12px, -4px) rotate(-10deg); }
-            80% { transform: scale(1.2) translate(12px, 4px) rotate(10deg); }
-            100% { transform: scale(1.25) translate(0, 0) rotate(0deg); opacity: 0; }
-        }
+/* Heftiges Wackeln vor der Explosion */
+@keyframes violentShake {
+    0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+    20% { transform: scale(1.05) translate(-8px, 6px) rotate(-6deg); }
+    40% { transform: scale(1.1) translate(8px, -6px) rotate(6deg); }
+    60% { transform: scale(1.15) translate(-12px, -4px) rotate(-10deg); }
+    80% { transform: scale(1.2) translate(12px, 4px) rotate(10deg); }
+    100% { transform: scale(1.25) translate(0, 0) rotate(0deg); opacity: 0; }
+}
 
-        /* Explosion der 0 heraus aus dem Einschlag */
-        @keyframes zeroImpact {
-            0% { transform: scale(0) rotate(-180deg); opacity: 0; filter: blur(10px); }
-            50% { transform: scale(1.4) rotate(10deg); opacity: 1; filter: blur(0); }
-            70% { transform: scale(0.9) rotate(-5deg); }
-            85% { transform: scale(1.1) rotate(0deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
+/* Explosion der 0 heraus aus dem Einschlag */
+@keyframes zeroImpact {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; filter: blur(10px); }
+    50% { transform: scale(1.4) rotate(10deg); opacity: 1; filter: blur(0); }
+    70% { transform: scale(0.9) rotate(-5deg); }
+    85% { transform: scale(1.1) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
 
-        .shake-before-pop {
-            animation: violentShake 1.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
-        }
+.shake-before-pop {
+    animation: violentShake 1.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
 
-        .zero-boom {
-            animation: zeroImpact 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+.zero-boom {
+    animation: zeroImpact 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
 
-        /* Fliegende Trümmer/Partikel */
-        .shard {
-            position: absolute;
-            font-weight: 900;
-            font-size: min(20vw, 35vh);
-            color: var(--accent);
-            opacity: 1;
-            pointer-events: none;
-            will-change: transform, opacity;
-            animation: flyShard 2.0s ease-out forwards;
-        }
+/* Fliegende Trümmer/Partikel */
+.shard {
+    position: absolute;
+    font-weight: 900;
+    font-size: min(20vw, 35vh);
+    color: var(--accent);
+    opacity: 1;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: flyShard 2.0s ease-out forwards;
+}
 
-        @keyframes flyShard {
-            0% {
-                transform: translate(0, 0) scale(1) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(var(--rot));
-                opacity: 0;
-            }
-        }
+@keyframes flyShard {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(var(--rot));
+        opacity: 0;
+    }
+}
 
-        /* Optische Schockwelle */
-        .shockwave {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 10px solid var(--accent);
-            box-shadow: 0 0 20px var(--accent);
-            pointer-events: none;
-            animation: expandShockwave 0.5s ease-out forwards;
-        }
+/* Optische Schockwelle */
+.shockwave {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 10px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+    pointer-events: none;
+    animation: expandShockwave 0.5s ease-out forwards;
+}
 
-        @keyframes expandShockwave {
-            0% { transform: scale(0.1); opacity: 1; border-width: 15px; }
-            100% { transform: scale(6); opacity: 0; border-width: 1px; }
-        }
+@keyframes expandShockwave {
+    0% { transform: scale(0.1); opacity: 1; border-width: 15px; }
+    100% { transform: scale(6); opacity: 0; border-width: 1px; }
+}
 
         /* --- BASE / DESKTOP --- */
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); display: flex; justify-content: center; transition: 0.3s; }
@@ -386,6 +386,7 @@
                 padding-right: 10px;
             }
         }
+
 
         .btn-top { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
         
@@ -463,6 +464,7 @@
             scroll-snap-align: start; scroll-snap-stop: always; 
             display: grid !important; 
             grid-template-columns: repeat(4, 1fr) !important; 
+            /* Zwingt jede Zeile auf allen 3 Seiten exakt auf 1/6 der Gesamthöhe minus Abstände (5 Lücken * 8px = 40px) */
             grid-template-rows: repeat(6, calc((100% - 40px) / 6)) !important; 
             gap: 8px !important; 
             box-sizing: border-box !important; 
@@ -480,6 +482,7 @@
         @media (orientation: landscape) {
             body.mobile-mode .pad-page { 
                 grid-template-columns: repeat(3, 1fr) !important; 
+                /* Querformat: 8 Zeilen (7 Lücken * 8px = 56px) */
                 grid-template-rows: repeat(8, calc((100% - 56px) / 8)) !important;
             }
             body.mobile-mode .pad-viewport { height: calc(100% - 15px) !important; overflow-y: auto; }
@@ -530,6 +533,7 @@
             body.mobile-mode .btn-undo { grid-column: span 1 !important; grid-row: span 1 !important; }
         }
 
+        
         .score-box { display: flex; flex-direction: column; line-height: 1.1; height: 100%; justify-content: center; }
         .score-box.near-win { animation: nearWinBlinker 1.2s linear infinite; }
         .score-box.winner-blink { background-color: var(--win); animation: blinker 1.2s linear infinite; }
@@ -581,7 +585,7 @@
 
         #histView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
         
-        /* --- MODERNE, OVERLAY-BASIERTE NERD STATISTIK --- */
+        /* --- MODERNE, OVERLAY-BASIERTE NERD STATISTIK (CLEAN & ERWACHSEN) --- */
         #nerdStatsView { 
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             background: rgba(0, 0, 0, 0.75); 
@@ -702,66 +706,76 @@
         .modal-btn-no { background: var(--ronny); }
         .modal-btn-ok { background: var(--primary); }
 
-        /* --- XXL ZAHLEN-POPUP ANIMATION --- */
-        .number-pop-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            box-sizing: border-box;
-            padding: 0 4vw; 
-        }
+/* --- XXL ZAHLEN-POPUP ANIMATION --- */
+.number-pop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    /* Verhindert horizontales Scrollen/Überlaufen garantiert */
+    box-sizing: border-box;
+    padding: 0 4vw; 
+}
 
-        .number-pop-text {
-            font-size: min(38vw, 70vh); 
-            font-weight: 900;
-            color: var(--accent);
-            text-shadow: 0 0 35px rgba(230, 126, 34, 0.8), 0 10px 30px rgba(0,0,0,0.8);
-            line-height: 1;
-            user-select: none;
-            transform: scale(0);
-            opacity: 0;
-            white-space: nowrap;
-            will-change: transform, opacity;
-            animation: flyExpandPulseExit 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
+.number-pop-text {
+    /* 
+       - Hochformat (Portrait): 45vw reicht für die breitesten Zahlen aus, ohne überzustehen.
+       - Querformat (Landscape): 70vh nutzt die Bildschirmhöhe auf Desktops richtig gut aus.
+    */
+    font-size: min(38vw, 70vh); 
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 35px rgba(230, 126, 34, 0.8), 0 10px 30px rgba(0,0,0,0.8);
+    line-height: 1;
+    user-select: none;
+    transform: scale(0);
+    opacity: 0;
+    white-space: nowrap;
+    will-change: transform, opacity;
+    animation: flyExpandPulseExit 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
 
-        @keyframes flyExpandPulseExit {
-            0%, 20% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            44% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            56% {
-                transform: scale(1.15);
-            }
-            68% {
-                transform: scale(1);
-            }
-            80% {
-                transform: scale(1.15);
-            }
-            92% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1.3);
-                opacity: 0;
-            }
-        }
+@keyframes flyExpandPulseExit {
+    /* 0.0s - 0.5s: Warten (Verzögerung nach Klick) */
+    0%, 20% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    /* 0.5s - 1.1s: Aus dem Hintergrund einfliegen & auf volle Breite ausdehnen */
+    44% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 1.1s - 1.7s: 1. Pulsieren */
+    56% {
+        transform: scale(1.15);
+    }
+    68% {
+        transform: scale(1);
+    }
+    /* 1.7s - 2.3s: 2. Pulsieren */
+    80% {
+        transform: scale(1.15);
+    }
+    92% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 2.3s - 2.8s: Verschwinden (unter 3s Gesamtdauer) */
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
         
-        /* STYLES FÜR END-POPUP CHARTS */
+        /* STYLES FÜR END-POPUP CHARTS MIT BREITER ANPASSUNG (OHNE SCROLLEN) */
         #customModal.game-over-modal .custom-modal-content {
             max-width: 95vw !important;
             width: 95vw !important;
@@ -841,17 +855,18 @@
         .dont-show-again { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; margin-top: 15px; cursor: pointer; color: #ccc; }
         .dont-show-again input { cursor: pointer; width: 16px; height: 16px; }
 
-        @media (min-width: 1024px) {
-            .chart-canvas-container {
-                top: -25px !important;
-                height: 190px !important;
-                max-width: 240px !important;
-            }
-            .player-chart-card {
-                padding: 12px 10px !important;
-                min-height: 240px;
-            }
-        }
+/* --- DESKTOP ADJUSTMENTS FÜR DIE END-POPUP CHARTS --- */
+@media (min-width: 1024px) {
+    .chart-canvas-container {
+        top: -25px !important;         /* Zieht das Diagramm ein Stück höher */
+        height: 190px !important;      /* Reduziert die Höhe, damit es nicht unten rausragt */
+        max-width: 240px !important;   /* Macht die Kreise einen Tick kompakter */
+    }
+    .player-chart-card {
+        padding: 12px 10px !important;
+        min-height: 240px;
+    }
+}
     </style>
 </head>
 <body id="mainBody">
@@ -956,24 +971,27 @@
                 <tfoot><tr id="tRow"></tr></tfoot>
             </table>
         </div>
-        <div class="quick-pad" id="padUI">
-            <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
-                <!-- SEITE 1 -->
-                <div class="pad-page" id="padPage1">
-                    <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
-                    <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
-                </div>
-
-                <div class="pad-page" id="padPage2"></div>
-                <div class="pad-page" id="padPage3"></div>
-            </div>
-
-            <div class="pad-dots">
-                <div class="pad-dot active" id="dot1"></div>
-                <div class="pad-dot" id="dot2"></div>
-                <div class="pad-dot" id="dot3"></div>
-            </div>
+<div class="quick-pad" id="padUI">
+    <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
+        
+        <!-- SEITE 1 -->
+        <div class="pad-page" id="padPage1">
+            <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
+            <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
+            <!-- Dein JS fügt die Zahlen 50, 100, 150... ab hier automatisch an -->
         </div>
+
+        <div class="pad-page" id="padPage2"></div>
+        <div class="pad-page" id="padPage3"></div>
+    </div>
+
+    <div class="pad-dots">
+        <div class="pad-dot active" id="dot1"></div>
+        <div class="pad-dot" id="dot2"></div>
+        <div class="pad-dot" id="dot3"></div>
+    </div>
+</div>
+
     </div>
 </div>
 
@@ -1112,14 +1130,14 @@
     let autoEndTimer = null;
     let pendingEndGame = false;
     let matchEndChartInstances = [];
-
     // Eindeutige ID für das aktuell laufende Spiel
-    let currentGameId = getSafe('10k_currentGameId', null);
+let currentGameId = getSafe('10k_currentGameId', null);
 
-    if (!currentGameId) {
-        currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
-    }
+if (!currentGameId) {
+    currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
+}
+
 
     // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
     let gameActive = getSafe('10k_gameActive', false);
@@ -1147,7 +1165,7 @@
         document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
     }
 
-    // ==========================================
+// ==========================================
     // AUTOMATISCHES AUDIO-PRELOADING VIA GITHUB API
     // ==========================================
     const audioCache = {};
@@ -1203,134 +1221,142 @@
         }
     }
 
-    let zeroCounter = 0;
-    let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
+let zeroCounter = 0;
+let nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
 
-    function triggerNumberPop(value) {
-        const oldOverlay = document.getElementById('numberPopOverlay');
-        if (oldOverlay) oldOverlay.remove();
+function triggerNumberPop(value) {
+    const oldOverlay = document.getElementById('numberPopOverlay');
+    if (oldOverlay) oldOverlay.remove();
 
-        const overlay = document.createElement('div');
-        overlay.id = 'numberPopOverlay';
-        overlay.className = 'number-pop-overlay';
+    const overlay = document.createElement('div');
+    overlay.id = 'numberPopOverlay';
+    overlay.className = 'number-pop-overlay';
 
-        let triggerExplosion = false;
-        if (value === 0 || value === '0') {
-            zeroCounter++;
-            if (zeroCounter >= nextExplosionTarget) {
-                triggerExplosion = true;
-                zeroCounter = 0;
-                nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
-            }
-        }
-
-        if ((value === 0 || value === '0') && triggerExplosion) {
-            const container = document.createElement('div');
-            container.className = 'shatter-container';
-
-            const text = document.createElement('div');
-            text.className = 'number-pop-text';
-            
-            const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
-            text.innerText = fakeNumber;
-            container.appendChild(text);
-            overlay.appendChild(container);
-            document.body.appendChild(overlay);
-
-            playCustomAudio('punkte.mp3');
-
-            setTimeout(() => {
-                text.classList.add('shake-before-pop');
-            }, 1000);
-
-            setTimeout(() => {
-                text.remove();
-
-                const wave = document.createElement('div');
-                wave.className = 'shockwave';
-                container.appendChild(wave);
-
-                const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
-                for (let i = 0; i < 18; i++) {
-                    const shard = document.createElement('div');
-                    shard.className = 'shard';
-                    shard.innerText = shardChars[i % shardChars.length];
-                    
-                    const angle = (i / 18) * Math.PI * 2;
-                    const dist = 300 + Math.random() * 250;
-                    const tx = Math.cos(angle) * dist + 'px';
-                    const ty = Math.sin(angle) * dist + 'px';
-                    const rot = (Math.random() * 720 - 360) + 'deg';
-
-                    shard.style.setProperty('--tx', tx);
-                    shard.style.setProperty('--ty', ty);
-                    shard.style.setProperty('--rot', rot);
-
-                    container.appendChild(shard);
-                }
-
-                const zeroText = document.createElement('div');
-                zeroText.className = 'number-pop-text zero-boom';
-                zeroText.innerText = '0';
-                container.appendChild(zeroText);
-
-                setTimeout(() => {
-                    const zeroSounds = [
-                        'und-weg.mp3',
-                        'alles-nullen-schnell.mp3',
-                        'garnix.mp3',
-                        'ich-hab-garnix-gemacht.mp3',
-                        'mach-garnix.mp3',
-                        'mop-mop-mop.mp3',
-                        'nicht-clever.mp3',
-                        'orginale-nichtskoenner.mp3',
-                        'zonk.mp3'
-                    ];
-                    const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
-                    playCustomAudio(randomZeroSound);
-                }, 500);
-
-            }, 2800);
-
-            setTimeout(() => {
-                if (overlay && overlay.parentNode) overlay.remove();
-            }, 6500);
-
-        } else {
-            const text = document.createElement('div');
-            text.className = 'number-pop-text';
-            text.innerText = value;
-            overlay.appendChild(text);
-            document.body.appendChild(overlay);
-
-            if (value === 0 || value === '0') {
-                setTimeout(() => {
-                    const zeroSounds = [
-                        'und-weg.mp3',
-                        'alles-nullen-schnell.mp3',
-                        'garnix.mp3',
-                        'ich-hab-garnix-gemacht.mp3',
-                        'mach-garnix.mp3',
-                        'mop-mop-mop.mp3',
-                        'nicht-clever.mp3',
-                        'orginale-nichtskoenner.mp3',
-                        'zonk.mp3'
-                    ];
-                    const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
-                    playCustomAudio(randomZeroSound);
-                }, 500);
-            } else {
-                setTimeout(() => {
-                    playCustomAudio(`${value}.mp3`);
-                }, 500);
-            }
-
-            setTimeout(() => {
-                if (overlay && overlay.parentNode) overlay.remove();
-            }, 3000);
+    let triggerExplosion = false;
+    if (value === 0 || value === '0') {
+        zeroCounter++;
+        if (zeroCounter >= nextExplosionTarget) {
+            triggerExplosion = true;
+            zeroCounter = 0;
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 2;
         }
     }
 
+    if ((value === 0 || value === '0') && triggerExplosion) {
+        const container = document.createElement('div');
+        container.className = 'shatter-container';
+
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        
+        const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
+        text.innerText = fakeNumber;
+        container.appendChild(text);
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+
+        // 1. Sofort den Punkte-Sound spielen zur Täuschung!
+        playCustomAudio('punkte.mp3');
+
+        // Nach 1.0s Rütteln
+        setTimeout(() => {
+            text.classList.add('shake-before-pop');
+        }, 1000);
+
+        // 2. Nach 2.8s: Explosion in Partikel & 0 knallt rein
+        setTimeout(() => {
+            text.remove();
+
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            container.appendChild(wave);
+
+            const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
+            for (let i = 0; i < 18; i++) {
+                const shard = document.createElement('div');
+                shard.className = 'shard';
+                shard.innerText = shardChars[i % shardChars.length];
+                
+                const angle = (i / 18) * Math.PI * 2;
+                const dist = 300 + Math.random() * 250;
+                const tx = Math.cos(angle) * dist + 'px';
+                const ty = Math.sin(angle) * dist + 'px';
+                const rot = (Math.random() * 720 - 360) + 'deg';
+
+                shard.style.setProperty('--tx', tx);
+                shard.style.setProperty('--ty', ty);
+                shard.style.setProperty('--rot', rot);
+
+                container.appendChild(shard);
+            }
+
+            const zeroText = document.createElement('div');
+            zeroText.className = 'number-pop-text zero-boom';
+            zeroText.innerText = '0';
+            container.appendChild(zeroText);
+
+            // Zufälligen Ronny-Nuller-Sound 0,5s NACH dem Knall abspielen
+            setTimeout(() => {
+                const zeroSounds = [
+                    'und-weg.mp3',
+                    'alles-nullen-schnell.mp3',
+                    'garnix.mp3',
+                    'ich-hab-garnix-gemacht.mp3',
+                    'mach-garnix.mp3',
+                    'mop-mop-mop.mp3',
+                    'nicht-clever.mp3',
+                    'orginale-nichtskoenner.mp3',
+                    'zonk.mp3'
+                ];
+                const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+                playCustomAudio(randomZeroSound);
+            }, 500);
+
+        }, 2800);
+
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 6500);
+
+    } else {
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        text.innerText = value;
+        overlay.appendChild(text);
+        document.body.appendChild(overlay);
+
+        if (value === 0 || value === '0') {
+            // Normale Null -> Zufälligen Ronny-Sound um 0,5s verzögert abspielen
+            setTimeout(() => {
+                const zeroSounds = [
+                    'und-weg.mp3',
+                    'alles-nullen-schnell.mp3',
+                    'garnix.mp3',
+                    'ich-hab-garnix-gemacht.mp3',
+                    'mach-garnix.mp3',
+                    'mop-mop-mop.mp3',
+                    'nicht-clever.mp3',
+                    'orginale-nichtskoenner.mp3',
+                    'zonk.mp3'
+                ];
+                const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+                playCustomAudio(randomZeroSound);
+            }, 500);
+        } else {
+            // Normale Zahlen -> Sound nach 500ms
+            setTimeout(() => {
+                playCustomAudio(`${value}.mp3`);
+            }, 500);
+        }
+
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 3000);
+    }
+}
+
+
+    
     function playOscillatorFallback() {
         try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1401,7 +1427,7 @@
         if (gameActive && !isPaused) {
             inactivityTimer = setTimeout(() => {
                 triggerPause();
-            }, 120000);
+            }, 120000); // 2 Minuten Inaktivität
         }
     }
 
@@ -1435,19 +1461,22 @@
         localStorage.removeItem('10k_accumulatedTimeMs');
         localStorage.removeItem('10k_currentTurnStartTime');
         localStorage.setItem('10k_gameActive', JSON.stringify(false));
-        generateNewGameId();
+        generateNewGameId(); // <-- HIER EINFÜGEN
     }
 
+    // Die neue Hilfsfunktion direkt darunter:
     function generateNewGameId() {
         currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
     }
+
 
     function sanitizeOldNames(text) {
         if (!text) return "";
         return text.replace(/\bAggi\b/gi, pNames[0] || "Spieler 1")
                    .replace(/\bDavid\b/gi, pNames[1] || "Spieler 2");
     }
+
 
     function fixAndRecalculateArchive() {
         let arch = archive || getSafe('10k_archive', []);
@@ -1637,97 +1666,88 @@
         }
     }
 
-    function getSortedActive() {
-        let active = [];
-        for (let i = 0; i < MAX_P; i++) {
-            let name = isArcView ? arcNames[i] : pNames[i];
-            if (name && name.trim() !== "") {
-                active.push({ n: name.trim(), i: i });
-            }
-        }
-        if (active.length === 0) return [];
-        let sIdx = active.findIndex(p => p.i === startIdx);
-        if (sIdx === -1) sIdx = 0;
-        return active.slice(sIdx).concat(active.slice(0, sIdx));
+function setV(v) { 
+    if(isArcView || isLocked) return; 
+
+    // Animation & Sound-Triggering aufrufen
+    triggerNumberPop(v);
+    
+    startTimerIfNeeded();
+
+    if (focus.pI === undefined || focus.r === undefined) {
+        const sorted = getSortedActive();
+        focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
+    }
+    isLocked = true;
+    const buttons = document.querySelectorAll('.pad-btn');
+    buttons.forEach(b => b.disabled = true);
+    
+    undoHistory.push({
+        scores: JSON.parse(JSON.stringify(scores)),
+        focus: { ...focus }
+    });
+    if (undoHistory.length > 3) {
+        undoHistory.shift();
     }
 
-    function setV(v) { 
-        if(isArcView || isLocked) return; 
-
-        triggerNumberPop(v);
-        
-        startTimerIfNeeded();
-
-        if (focus.pI === undefined || focus.r === undefined) {
-            const sorted = getSortedActive();
-            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
-        }
-        isLocked = true;
-        const buttons = document.querySelectorAll('.pad-btn');
-        buttons.forEach(b => b.disabled = true);
-        
-        undoHistory.push({
-            scores: JSON.parse(JSON.stringify(scores)),
-            focus: { ...focus }
-        });
-        if (undoHistory.length > 3) {
-            undoHistory.shift();
-        }
-
-        if (v !== 0 && v !== '0') {
-            playCustomAudio('punkte.mp3');
-        }
-
-        scores[focus.r][focus.pI] = v.toString(); 
-        isQuickPress = true;
-        render(); 
-
-        const vp = document.getElementById('padViewport');
-        if (vp) {
-            const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
-            if (pageIdx > 0) {
-                if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
-                autoPageReturnTimer = setTimeout(() => {
-                    vp.scrollTo({ left: 0, behavior: 'smooth' });
-                }, 1000);
-            }
-        }
-
-        setTimeout(() => { 
-            jumpToNext(); 
-            isLocked = false; 
-            buttons.forEach(b => b.disabled = false); 
-        }, 500);
+    // Bei Zahlen > 0 spielt setV sofort den Punkte-Sound.
+    // Bei 0 übernimmt triggerNumberPop komplett das Timing (inkl. Fake-Null & Ronny-Sound).
+    if (v !== 0 && v !== '0') {
+        playCustomAudio('punkte.mp3');
     }
 
-    function undoMove() {
-        if (isArcView || isLocked || undoHistory.length === 0) return;
+    scores[focus.r][focus.pI] = v.toString(); 
+    isQuickPress = true;
+    render(); 
 
-        playCustomAudio('zurueck.mp3');
-
-        if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
-        pendingEndGame = false;
-        isLocked = true;
-        const buttons = document.querySelectorAll('.pad-btn');
-        buttons.forEach(b => b.disabled = true);
-
-        const lastState = undoHistory.pop();
-        scores = JSON.parse(JSON.stringify(lastState.scores));
-        focus = { ...lastState.focus };
-        
-        save();
-        render();
-
-        setTimeout(() => {
-            const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
-            if (el) {
-                el.focus();
-                scrollCheck(el);
-            }
-            isLocked = false;
-            buttons.forEach(b => b.disabled = false);
-        }, 500);
+    const vp = document.getElementById('padViewport');
+    if (vp) {
+        const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+        if (pageIdx > 0) {
+            if (autoPageReturnTimer) clearTimeout(autoPageReturnTimer);
+            autoPageReturnTimer = setTimeout(() => {
+                vp.scrollTo({ left: 0, behavior: 'smooth' });
+            }, 1000);
+        }
     }
+
+    setTimeout(() => { 
+        jumpToNext(); 
+        isLocked = false; 
+        buttons.forEach(b => b.disabled = false); 
+    }, 500);
+}
+
+
+function undoMove() {
+    if (isArcView || isLocked || undoHistory.length === 0) return;
+
+    // Sound über playCustomAudio aus dem audio/-Ordner abspielen
+    playCustomAudio('zurueck.mp3');
+
+    if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+    pendingEndGame = false;
+    isLocked = true;
+    const buttons = document.querySelectorAll('.pad-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    const lastState = undoHistory.pop();
+    scores = JSON.parse(JSON.stringify(lastState.scores));
+    focus = { ...lastState.focus };
+    
+    save();
+    render();
+
+    setTimeout(() => {
+        const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
+        if (el) {
+            el.focus();
+            scrollCheck(el);
+        }
+        isLocked = false;
+        buttons.forEach(b => b.disabled = false);
+    }, 500);
+}
 
     function jumpToNext() {
         const sorted = getSortedActive();
@@ -1891,6 +1911,7 @@
 
         sorted.forEach(p => {
             const laneEmoji = pEmojis[p.i] || "🐎";
+            
             const mirrorClass = DEFAULT_RIGHT_FACING.includes(laneEmoji) ? "mirror" : "";
 
             const lane = document.createElement('div');
@@ -2082,7 +2103,7 @@
         }, 5000);
     }
 
-    function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
+      function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
         const durationMs = stopTimerAndGetDuration();
 
         let winners = playerTotals.filter(item => item.tot >= 10000);
@@ -2098,6 +2119,7 @@
             return `${item.p.n}: ${item.tot} Pkt.`;
         }).join('\n');
 
+        // Kategorien-Statistiken pro Spieler & Gesamtverteilung
         const activeScores = isArcView ? arcScores : scores;
         let playerStats = {};
         let totalCounts = {
@@ -2141,6 +2163,9 @@
             }
         });
 
+        // ==========================================
+        // DUPLIKAT-SCHUTZ BEIM SPEICHERN (NUR 1X SPEICHERN)
+        // ==========================================
         const alreadySaved = archive.some(item => item.id === currentGameId);
 
         if (!alreadySaved) {
@@ -2157,13 +2182,14 @@
             render();
         }
 
+        // Ab hier wird der Inhalt des Popups zusammengebaut:
         const categoryColors = [
-            '#e74c3c',
-            '#3498db',
-            '#2ecc71',
-            '#f1c40f',
-            '#9b59b6',
-            '#e67e22'
+            '#e74c3c', // Ronnys (0)
+            '#3498db', // 350 - 450
+            '#2ecc71', // 500 - 700
+            '#f1c40f', // 750 - 950
+            '#9b59b6', // 1000 - 1450
+            '#e67e22'  // Über 1500
         ];
 
         const catKeys = Object.keys(totalCounts);
@@ -2174,557 +2200,737 @@
             </div>
         `).join('') + `</div>`;
 
+        // Grid mit Gesamtverteilungs-Chart als erstes Element
         let totalChartCardHTML = `
             <div class="player-chart-card total-chart-card">
-                <div style="font-size:0.85rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">Gesamtverteilung</div>
                 <div class="chart-canvas-container">
-                    <canvas id="chart-canvas-total"></canvas>
+                    <canvas id="endChart_TOTAL"></canvas>
                 </div>
             </div>
         `;
 
-        let playerChartsCardsHTML = sorted.map(p => `
+        let playerChartsHTML = sorted.map(p => `
             <div class="player-chart-card">
-                <div style="font-size:0.85rem; font-weight:bold; color:var(--text); margin-bottom:4px;">${p.n}</div>
                 <div class="chart-canvas-container">
-                    <canvas id="chart-canvas-${p.i}"></canvas>
+                    <canvas id="endChart_${p.i}"></canvas>
                 </div>
             </div>
         `).join('');
 
-        let chartsGridHTML = `
+        let msgHTML = `
+            <div style="font-weight: bold; font-size: 1.2rem; color: var(--accent); margin-bottom: 6px;">${winText}</div>
+            <div style="white-space: pre-line; margin-bottom: 10px; font-size:0.95rem;"><strong>--- Endergebnis ---</strong>\n${statLines}</div>
+            
             <div class="modal-charts-wrapper">
+                <div style="font-weight:bold; color:var(--text); font-size:1.0rem; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">📊 Statistische Wurf-Verteilung</div>
                 ${legendHTML}
                 <div class="modal-charts-grid">
                     ${totalChartCardHTML}
-                    ${playerChartsCardsHTML}
+                    ${playerChartsHTML}
                 </div>
             </div>
+            
+            <div style="margin-top:10px; font-weight:bold;">Möchtest du eine neue Partie starten?</div>
         `;
 
-        const modalText = `🎉 ${winText} 🎉\n\n${statLines}`;
-        
-        openGameOverModal("Spiel beendet!", modalText, chartsGridHTML, () => {
-            renderChartCanvas('chart-canvas-total', Object.values(totalCounts), categoryColors);
-            sorted.forEach(p => {
-                let pData = Object.values(playerStats[p.i].counts);
-                renderChartCanvas(`chart-canvas-${p.i}`, pData, categoryColors);
-            });
-        });
-    }
-
-    function renderChartCanvas(canvasId, dataValues, colors) {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) return;
-        
-        const instance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ronnys (0)', '350 - 450', '500 - 700', '750 - 950', '1000 - 1450', 'Über 1500'],
-                datasets: [{
-                    data: dataValues,
-                    backgroundColor: colors,
-                    borderWidth: 1,
-                    borderColor: '#2c2c2c'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: true }
-                }
-            }
-        });
-        matchEndChartInstances.push(instance);
-    }
-
-    function openGameOverModal(title, text, htmlContent, onRendered) {
-        matchEndChartInstances.forEach(inst => inst.destroy());
-        matchEndChartInstances = [];
-
         const modal = document.getElementById('customModal');
-        modal.classList.add('game-over-modal');
+        if (modal) modal.classList.add('game-over-modal');
 
-        document.getElementById('customModalTitle').innerText = title;
-        document.getElementById('customModalText').innerText = text;
-
-        let extraContainer = document.getElementById('customModalExtraContent');
-        if (!extraContainer) {
-            extraContainer = document.createElement('div');
-            extraContainer.id = 'customModalExtraContent';
-            document.getElementById('customModalText').after(extraContainer);
-        }
-        extraContainer.innerHTML = htmlContent;
-
-        const btnArea = document.getElementById('customModalButtons');
-        btnArea.innerHTML = '';
-        
-        const btnOk = document.createElement('button');
-        btnOk.className = 'modal-btn modal-btn-ok';
-        btnOk.innerText = 'Weiter';
-        btnOk.onclick = () => { 
-            modal.style.display = 'none'; 
-            modal.classList.remove('game-over-modal');
-            extraContainer.innerHTML = '';
+        const destroyCharts = () => {
             matchEndChartInstances.forEach(inst => inst.destroy());
             matchEndChartInstances = [];
         };
-        
-        btnArea.appendChild(btnOk);
-        modal.style.display = 'flex';
 
+        openConfirm(
+            "Partie Beendet! 🏆",
+            "", 
+            () => {
+                if (modal) modal.classList.remove('game-over-modal');
+                destroyCharts();
+                // Neue Partie zurücksetzen
+                checkForUpdates();
+                if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+                pendingEndGame = false;
+                scores = [Array(MAX_P).fill("")]; 
+                undoHistory = [];
+                resetGameTimer();
+                playCustomAudio('neue-runde.mp3');
+                playedUnder1000 = Array(MAX_P).fill(false);
+                playedWinnerSound = Array(MAX_P).fill(false);
+                const sortedActive = getSortedActive();
+                if (sortedActive.length > 0) {
+                    focus = { r: 0, pI: sortedActive[0].i, apIdx: 0 };
+                }
+                recalculateKingOfTheHill();
+                render(); 
+                save();
+            },
+            () => {
+                if (modal) modal.classList.remove('game-over-modal');
+                destroyCharts();
+                pendingEndGame = false;
+                autoEndTimer = null;
+            }
+        );
+
+        const modalTextElem = document.getElementById('customModalText');
+        if (modalTextElem) modalTextElem.innerHTML = msgHTML;
+
+        // Render-Charts ohne eigene Legende für aufgeräumte Optik
         setTimeout(() => {
-            if (onRendered) onRendered();
+            destroyCharts();
+
+            const commonChartOptions = (titleText) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: titleText,
+                        color: getComputedStyle(document.body).getPropertyValue('--accent') || '#e67e22',
+                        font: { size: 11, weight: 'bold' },
+                        padding: { top: 0, bottom: 4 }
+                    }
+                }
+            });
+
+            // Hier machst du in deinem Code mit dem Erstellen der Chart-Instanzen weiter...
+
+
+            // 1. GESAMTVERTEILUNGS-DIAGRAMM
+            const ctxTotal = document.getElementById('endChart_TOTAL');
+            if (ctxTotal) {
+                const totalChartInst = new Chart(ctxTotal, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(totalCounts),
+                        datasets: [{
+                            data: Object.values(totalCounts),
+                            backgroundColor: categoryColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: commonChartOptions('🌐 GESAMTVERTEILUNG')
+                });
+                matchEndChartInstances.push(totalChartInst);
+            }
+
+            // 2. EINZELNE SPIELER-DIAGRAMME
+            sorted.forEach(p => {
+                const ctx = document.getElementById(`endChart_${p.i}`);
+                if (ctx) {
+                    const pData = playerStats[p.i];
+                    const chartInst = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(pData.counts),
+                            datasets: [{
+                                data: Object.values(pData.counts),
+                                backgroundColor: categoryColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: commonChartOptions(`👤 ${pData.name}`)
+                    });
+                    matchEndChartInstances.push(chartInst);
+                }
+            });
         }, 50);
     }
 
-    function buildPadUI() {
-        const p1 = document.getElementById('padPage1');
-        const p2 = document.getElementById('padPage2');
-        const p3 = document.getElementById('padPage3');
-
-        p1.innerHTML = `
-            <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
-            <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
-        `;
-        p2.innerHTML = '';
-        p3.innerHTML = '';
-
-        for (let val = 350; val <= 1300; val += 50) {
-            const btn = document.createElement('button');
-            btn.className = 'pad-btn';
-            btn.innerText = val;
-            btn.onclick = () => setV(val);
-            p1.appendChild(btn);
-        }
-
-        for (let val = 1350; val <= 2500; val += 50) {
-            const btn = document.createElement('button');
-            btn.className = 'pad-btn';
-            btn.innerText = val;
-            btn.onclick = () => setV(val);
-            p2.appendChild(btn);
-        }
-
-        for (let val = 2550; val <= 3700; val += 50) {
-            const btn = document.createElement('button');
-            btn.className = 'pad-btn';
-            btn.innerText = val;
-            btn.onclick = () => setV(val);
-            p3.appendChild(btn);
+    function getSortedActive() { 
+        const names = isArcView ? arcNames : pNames; 
+        const active = names.map((n, i) => ({n, i})).filter(p => p.n && p.n.trim() !== ""); 
+        if (active.length === 0) return [];
+        const sPos = active.findIndex(p => p.i === startIdx); 
+        return (sPos === -1) ? active : [...active.slice(sPos), ...active.slice(0, sPos)]; 
+    }
+    
+    async function saveCSV() {
+        const d = { pNames, scores, archive, startIdx, pEmojis };
+        const jsonString = JSON.stringify(d);
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const fileName = `Würfel-Backup-${yy}.${mm}.${dd}-${hh}.${min}.csv`;
+        
+        try {
+            const blob = new Blob([jsonString], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            openAlert("Erfolg", "Das Backup wurde erfolgreich erstellt und der Download wurde gestartet.");
+        } catch (err) {
+            openAlert("Fehler", "Das Backup konnte nicht erstellt werden.");
         }
     }
 
-    function initHeaderStatus() {
-        setInterval(() => {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('time-display').innerText = timeStr;
-
-            if (gameActive && currentTurnStartTime && !isPaused) {
-                const currentTotalMs = accumulatedTimeMs + (Date.now() - currentTurnStartTime);
-                const totalSec = Math.floor(currentTotalMs / 1000);
-                const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
-                const s = String(totalSec % 60).padStart(2, '0');
-                document.getElementById('elapsed-display').innerText = `⏱️ ${m}:${s}`;
-            } else {
-                const totalSec = Math.floor(accumulatedTimeMs / 1000);
-                const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
-                const s = String(totalSec % 60).padStart(2, '0');
-                document.getElementById('elapsed-display').innerText = `⏱️ ${m}:${s}`;
+    function loadCSV(e) { 
+        const r = new FileReader(); 
+        r.onload = (ev) => { 
+            try { 
+                const d = JSON.parse(ev.target.result); 
+                pNames=d.pNames; scores=d.scores; archive=d.archive; startIdx=d.startIdx; 
+                if(d.pEmojis) pEmojis=d.pEmojis; 
+                undoHistory = [];
+                if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+                pendingEndGame = false;
+                resetGameTimer();
+                save(); render(); 
+            } catch(err) { 
+                openAlert("Fehler", "Die Datei konnte nicht als gültiges Backup geladen werden!"); 
+            } 
+        }; 
+        r.readAsText(e.target.files[0]); 
+    }
+    
+    function openHistory() { document.getElementById('histView').style.display = 'block'; renderArchiveList(); }
+    
+    function renderArchiveList() { 
+        document.getElementById('arcList').innerHTML = archive.map((g, idx) => {
+            let displayW = sanitizeOldNames(g.w);
+            let durationText = g.durationMs ? ` | ⏱️ ${formatDuration(g.durationMs)}` : '';
+            return `
+            <div class="history-item">
+                <div><strong>${g.d}${durationText}</strong><br><small>${displayW}</small></div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-load-hist" onclick="showArchiveGame(${idx})">LADEN</button>
+                    <button class="btn-load-hist" style="background:var(--ronny);" onclick="deleteHistoryItem(${idx})">LÖSCHEN</button>
+                </div>
+            </div>`;
+        }).join('') + (archive.length > 0 ? `<button class="btn-top" style="background:var(--ronny); width:100%; margin-top:15px; padding:10px 0;" onclick="clearAllHistory()">⚠️ GESAMTE HISTORIE LÖSCHEN</button>` : '<div style="color:#aaa; text-align:center; padding:20px;">Keine Einträge vorhanden</div>'); 
+    }
+    
+    function deleteHistoryItem(idx) {
+        openConfirm(
+            "Eintrag löschen?",
+            "Diesen Eintrag aus der Historie löschen? (Die Kronen-Statistik wird sofort live angepasst)",
+            () => {
+                openConfirm(
+                    "Absolut sicher?",
+                    "Bist du dir wirklich absolut sicher? Dieser Schritt kann nicht rückgängig gemacht werden!",
+                    () => {
+                        archive.splice(idx, 1);
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
             }
-        }, 1000);
+        );
+    }
 
-        if ('getBattery' in navigator) {
-            navigator.getBattery().then(battery => {
-                const updateBatt = () => {
-                    const level = Math.round(battery.level * 100);
-                    document.getElementById('battery-display').innerText = `🔋 ${level}%`;
-                };
-                updateBatt();
-                battery.addEventListener('levelchange', updateBatt);
-            }).catch(() => {
-                document.getElementById('battery-display').style.display = 'none';
-            });
-        } else {
-            document.getElementById('battery-display').style.display = 'none';
-        }
+    function clearAllHistory() {
+        openConfirm(
+            "GESAMTE Historie löschen?",
+            "Möchtest du wirklich die GESAMTE Historie unwiderruflich löschen? (Dadurch werden auch ALLE Kronen zurückgesetzt)",
+            () => {
+                openConfirm(
+                    "Sämtliche Daten verlieren?",
+                    "Bist du dir wirklich absolut sicher? SÄMTLICHE Spiele und Statistiken gehen verloren!",
+                    () => {
+                        archive = [];
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
+            }
+        );
+    }
+
+    function showArchiveGame(idx) { 
+        let rawNames = archive[idx].names || pNames;
+        arcNames = rawNames.map(n => sanitizeOldNames(n)); 
+        arcScores = JSON.parse(JSON.stringify(archive[idx].s)); 
+        isArcView = true; 
+        document.getElementById('arcBanner').style.display = 'block'; 
+        document.getElementById('histView').style.display='none'; 
+        render(); 
+    }
+    
+    function exitArchive() { isArcView = false; document.getElementById('arcBanner').style.display = 'none'; render(); }
+    
+    function askMasterReset() { 
+        openConfirm(
+            "Kompletter Board-Reset?",
+            "Möchtest du wirklich das Board komplett zurücksetzen? (Dadurch werden ALLE Namen, aktuellen Punkte und die komplette Historie unwiderruflich gelöscht)",
+            () => {
+                openConfirm(
+                    "Unwiderruflich löschen?",
+                    "Bist du dir absolut sicher? Es gibt KEINE Möglichkeit, die Daten danach wiederherzustellen (außer du hast ein Backup)!",
+                    () => {
+                        localStorage.clear(); 
+                        location.reload(); 
+                    }
+                );
+            }
+        );
     }
 
     function finishCheck() {
-        if (isArcView) return;
-        openConfirm("Neues Spiel starten", "Soll ein neues Spiel gestartet werden? Das aktuelle Spiel wird in die Historie übergeben.", () => {
-            const sorted = getSortedActive();
-            let playerTotals = sorted.map(p => {
-                let tot = 0;
-                scores.forEach(r => {
-                    let v = parseInt(r[p.i]);
-                    if (!isNaN(v)) tot += v;
-                });
-                return { p, tot };
-            });
-
-            let winners = playerTotals.filter(item => item.tot >= 10000);
-
-            let winText = "-";
-            if (winners.length > 1) {
-                winText = "Unentschieden: " + winners.map(w => w.p.n).join(", ");
-            } else if (winners.length === 1) {
-                winText = "Sieger: " + winners[0].p.n;
-            }
-
-            const durationMs = stopTimerAndGetDuration();
-
-            const alreadySaved = archive.some(item => item.id === currentGameId);
-
-            if (!alreadySaved) {
-                archive.unshift({ 
-                    id: currentGameId,
-                    d: new Date().toLocaleString(), 
-                    w: winText, 
-                    s: JSON.parse(JSON.stringify(scores)), 
-                    names: JSON.parse(JSON.stringify(pNames)),
-                    durationMs: durationMs
-                });
-            }
-
-            scores = [Array(MAX_P).fill("")];
-            focus = { r: 0, pI: 0, apIdx: 0 };
-            undoHistory = [];
-            resetGameTimer();
-            recalculateKingOfTheHill();
-            save();
-            render();
-        });
-    }
-
-    function askMasterReset() {
-        openConfirm("Master Reset", "ACHTUNG: Möchtest du wirklich das gesamte Board und alle gespeicherten Daten (inkl. Historie & Statistiken) zurücksetzen?", () => {
-            localStorage.clear();
-            location.reload();
-        });
-    }
-
-    function openHistory() {
-        renderArchiveList();
-        document.getElementById('histView').style.display = 'block';
-    }
-
-    function renderArchiveList() {
-        const container = document.getElementById('arcList');
-        container.innerHTML = '';
-        if (archive.length === 0) {
-            container.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">Keine Historie vorhanden</div>';
-            return;
-        }
-
-        archive.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            
-            let durStr = "";
-            if (item.durationMs) {
-                const totalSec = Math.floor(item.durationMs / 1000);
-                const m = Math.floor(totalSec / 60);
-                const s = totalSec % 60;
-                durStr = ` | ⏱️ ${m}m ${s}s`;
-            }
-
-            div.innerHTML = `
-                <div>
-                    <strong>${item.d}</strong>${durStr}<br>
-                    <small style="color:var(--accent);">${item.w}</small>
-                </div>
-                <button class="btn-load-hist" onclick="loadArchiveEntry(${idx})">Ansehen</button>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    function loadArchiveEntry(idx) {
-        const item = archive[idx];
-        if (!item) return;
-        isArcView = true;
-        arcScores = JSON.parse(JSON.stringify(item.s));
-        arcNames = JSON.parse(JSON.stringify(item.names || pNames));
+        const active = getSortedActive();
+        let winners = [];
         
-        document.getElementById('arcBanner').style.display = 'block';
-        document.getElementById('histView').style.display = 'none';
-        render();
+        active.forEach(p => { 
+            let s = 0; 
+            scores.forEach(r => s += (parseInt(r[p.i]) || 0)); 
+            if(s >= 10000) { 
+                winners.push(p.n); 
+            } 
+        });
+        
+        let winText = "-";
+        if (winners.length > 1) {
+            winText = "Unentschieden: " + winners.join(", ");
+            finishGame(winText);
+        } else if (winners.length === 1) {
+            winText = "Sieger: " + winners[0];
+            finishGame(winText);
+        } else {
+            openConfirm(
+                "Spiel vorzeitig abbrechen?",
+                "Achtung: Es hat noch kein Spieler die 10.000 Punkte erreicht!\n\nMöchtest du dieses laufende Spiel wirklich vorzeitig abbrechen und eine neue Runde starten?",
+                () => {
+                    winText = "Vorzeitig beendet";
+                    finishGame(winText);
+                }
+            );
+        }
     }
 
-    function exitArchive() {
-        isArcView = false;
-        arcScores = [];
-        arcNames = [];
-        document.getElementById('arcBanner').style.display = 'none';
-        render();
+    function finishGame(winText) {
+        checkForUpdates();
+        if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+        pendingEndGame = false;
+
+        const durationMs = stopTimerAndGetDuration();
+
+        scores = [Array(MAX_P).fill("")]; 
+        undoHistory = [];
+        
+        resetGameTimer();
+
+        playCustomAudio('neue-runde.mp3');
+        
+        playedUnder1000 = Array(MAX_P).fill(false);
+        playedWinnerSound = Array(MAX_P).fill(false);
+        
+        const sorted = getSortedActive();
+        if (sorted.length > 0) {
+            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
+        }
+        
+        recalculateKingOfTheHill();
+        render(); 
+        save();
     }
 
-    function openNerdStats() {
-        calculateAndRenderNerdStats();
-        document.getElementById('nerdStatsView').classList.add('active');
+    /* --- NERD STATISTIK FUNKTIONEN --- */
+    function formatDuration(ms) {
+        if (!ms || isNaN(ms)) return "k. A.";
+        let totalSec = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSec / 3600);
+        let minutes = Math.floor((totalSec % 3600) / 60);
+        let seconds = totalSec % 60;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        if (minutes > 0) return `${minutes}m ${seconds}s`;
+        return `${seconds}s`;
     }
 
     function closeNerdStats(e) {
-        document.getElementById('nerdStatsView').classList.remove('active');
+        if (e && e.target !== e.currentTarget && !e.target.classList.contains('nerd-stats-close-btn')) return;
+        const view = document.getElementById('nerdStatsView');
+        view.classList.remove('active');
     }
 
-    function calculateAndRenderNerdStats() {
+    function openNerdStats() {
+        document.getElementById('histView').style.display = 'none';
+        const view = document.getElementById('nerdStatsView');
         const content = document.getElementById('nerdStatsContent');
-        content.innerHTML = '';
 
-        let allGames = [];
-        
-        if (scores && scores.length > 0) {
-            let hasCurrentData = scores.some(r => r.some(v => v !== "" && v !== undefined));
-            if (hasCurrentData) {
-                allGames.push({
-                    s: scores,
-                    names: pNames,
-                    d: "Aktuelles Spiel",
-                    w: "Laufend",
-                    durationMs: accumulatedTimeMs
-                });
-            }
-        }
-
-        archive.forEach(g => allGames.push(g));
-
-        if (allGames.length === 0) {
-            content.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px; grid-column: 1/-1;">Keine Spieldaten für Nerd-Statistiken vorhanden.</div>';
+        if (!archive || archive.length === 0) {
+            content.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #aaa;">Noch keine Spiele in der Historie vorhanden! Spiele erst ein paar Runden. 😉</div>';
+            view.classList.add('active');
             return;
         }
 
-        let totalRoundsAll = 0;
-        let totalPointsAll = 0;
-        let totalZerosAll = 0;
-        let highestSingleThrow = { val: 0, player: '-', date: '-' };
-        let highestRoundScore = { val: 0, player: '-', date: '-' };
-        let mostZerosInGame = { val: 0, player: '-', date: '-' };
-
+        let totalGames = archive.length;
+        let totalRoundsPlayed = 0;
+        let totalRonnysGlobal = 0;
+        let totalPointsGlobal = 0;
+        
+        let fastestGame = { time: Infinity, date: "", winner: "" };
+        let slowestGame = { time: 0, date: "", winner: "" };
+        
+        let leastRoundsGame = { rounds: Infinity, date: "", winner: "" };
+        let mostRoundsGame = { rounds: 0, date: "", winner: "" };
+        
+        let highestSingleTurn = { score: 0, player: "", date: "" };
+        let gameWithMostRonnys = { ronnys: 0, date: "" };
+        
+        // Listen für Gleichstände bei Streaks
+        let longestRonnyStreak = { count: 0, players: [], date: "" };
+        let longestNoRonnyStreak = { count: 0, players: [], date: "" };
+        
         let playerStatsMap = {};
 
-        pNames.forEach((n, idx) => {
-            if (n && n.trim() !== "") {
-                playerStatsMap[idx] = {
-                    name: n.trim(),
-                    totalPoints: 0,
-                    totalThrows: 0,
-                    zerosCount: 0,
-                    wins: stats[idx] || 0,
-                    maxThrow: 0,
-                    categories: {
-                        ronny: 0, small: 0, med: 0, big: 0, elite: 0, meister: 0
+        archive.forEach(g => {
+            let roundsInGame = g.s.length;
+            if (g.s.length > 0 && g.s[g.s.length - 1].every(v => v === "" || v === undefined)) {
+                roundsInGame--;
+            }
+            totalRoundsPlayed += roundsInGame;
+
+            if (g.durationMs) {
+                if (g.durationMs < fastestGame.time) fastestGame = { time: g.durationMs, date: g.d, winner: g.w };
+                if (g.durationMs > slowestGame.time) slowestGame = { time: g.durationMs, date: g.d, winner: g.w };
+            }
+
+            if (roundsInGame < leastRoundsGame.rounds && roundsInGame > 0) leastRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+            if (roundsInGame > mostRoundsGame.rounds) mostRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+
+            let currentGameRonnys = 0;
+            let gameNames = g.names || pNames;
+
+            let currentRonnyStreaksInGame = {};
+            let currentNoRonnyStreaksInGame = {};
+
+            g.s.forEach((row, rIdx) => {
+                row.forEach((valStr, pIdx) => {
+                    let pName = sanitizeOldNames(gameNames[pIdx]);
+                    if (!pName || pName.trim() === "") return;
+
+                    if (!playerStatsMap[pName]) {
+                        playerStatsMap[pName] = { 
+                            totalPoints: 0, 
+                            ronnys: 0, 
+                            turns: 0,
+                            catSmall: 0, catMed: 0, catBig: 0, catElite: 0, catMeister: 0
+                        };
                     }
-                };
+                    if (currentRonnyStreaksInGame[pName] === undefined) currentRonnyStreaksInGame[pName] = 0;
+                    if (currentNoRonnyStreaksInGame[pName] === undefined) currentNoRonnyStreaksInGame[pName] = 0;
+
+                    let val = parseInt(valStr);
+                    if (!isNaN(val)) {
+                        playerStatsMap[pName].turns++;
+                        playerStatsMap[pName].totalPoints += val;
+                        totalPointsGlobal += val;
+
+                        if (val === 0) {
+                            totalRonnysGlobal++;
+                            currentGameRonnys++;
+                            playerStatsMap[pName].ronnys++;
+
+                            currentRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei Ronny-Streaks
+                            if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
+                                longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentRonnyStreaksInGame[pName] === longestRonnyStreak.count && currentRonnyStreaksInGame[pName] > 0) {
+                                if (!longestRonnyStreak.players.includes(pName)) {
+                                    longestRonnyStreak.players.push(pName);
+                                }
+                            }
+                            
+                            currentNoRonnyStreaksInGame[pName] = 0;
+
+                        } else {
+                            if (val <= 450) playerStatsMap[pName].catSmall++;
+                            else if (val <= 700) playerStatsMap[pName].catMed++;
+                            else if (val <= 950) playerStatsMap[pName].catBig++;
+                            else if (val <= 1450) playerStatsMap[pName].catElite++;
+                            else playerStatsMap[pName].catMeister++;
+
+                            currentRonnyStreaksInGame[pName] = 0;
+                            currentNoRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei No-Ronny-Streaks
+                            if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
+                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentNoRonnyStreaksInGame[pName] === longestNoRonnyStreak.count && currentNoRonnyStreaksInGame[pName] > 0) {
+                                if (!longestNoRonnyStreak.players.includes(pName)) {
+                                    longestNoRonnyStreak.players.push(pName);
+                                }
+                            }
+
+                            if (val > highestSingleTurn.score) {
+                                highestSingleTurn = { score: val, player: pName, date: g.d };
+                            }
+                        }
+                    }
+                });
+            });
+
+            if (currentGameRonnys > gameWithMostRonnys.ronnys) {
+                gameWithMostRonnys = { ronnys: currentGameRonnys, date: g.d };
             }
         });
 
-        allGames.forEach(game => {
-            let gScores = game.s || [];
-            let gNames = game.names || pNames;
-
-            gScores.forEach((row, rIdx) => {
-                let roundSum = 0;
-                let roundHasVal = false;
-
-                for (let i = 0; i < MAX_P; i++) {
-                    let val = parseInt(row[i]);
-                    if (!isNaN(val)) {
-                        roundHasVal = true;
-                        roundSum += val;
-                        totalPointsAll += val;
-                        totalThrowsAll = (totalThrowsAll || 0) + 1;
-
-                        if (val === 0) {
-                            totalZerosAll++;
-                        }
-
-                        if (val > highestSingleThrow.val) {
-                            highestSingleThrow = { val: val, player: gNames[i] || `Spieler ${i+1}`, date: game.d || '-' };
-                        }
-
-                        if (playerStatsMap[i]) {
-                            playerStatsMap[i].totalPoints += val;
-                            playerStatsMap[i].totalThrows++;
-                            if (val === 0) playerStatsMap[i].zerosCount++;
-                            if (val > playerStatsMap[i].maxThrow) playerStatsMap[i].maxThrow = val;
-
-                            let cat = val===0?'ronny':val<=450?'small':val<=700?'med':val<=950?'big':val<=1500?'elite':'meister';
-                            playerStatsMap[i].categories[cat]++;
-                        }
-                    }
+        // Hilfsfunktion zur Ermittlung aller Gewinner bei Gleichstand in einer Kategorie
+        function getCategoryWinners(catKey) {
+            let maxVal = 0;
+            let winners = [];
+            Object.keys(playerStatsMap).forEach(pName => {
+                let count = playerStatsMap[pName][catKey] || 0;
+                if (count > maxVal) {
+                    maxVal = count;
+                    winners = [pName];
+                } else if (count === maxVal && count > 0) {
+                    winners.push(pName);
                 }
-
-                if (roundHasVal) totalRoundsAll++;
             });
+            if (maxVal === 0 || winners.length === 0) return "-";
+            return `${winners.join(', ')} (${maxVal}x)`;
+        }
+
+        let ronnyKing = { name: "-", count: 0 };
+        let pointsKing = { name: "-", points: 0 };
+        let bestAvgPlayer = { name: "-", avg: 0 };
+        let highestRonnyPercentage = { name: "-", pct: 0 };
+
+        Object.keys(playerStatsMap).forEach(pName => {
+            let pData = playerStatsMap[pName];
+            if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
+            if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
+
+            let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
+            if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
+                bestAvgPlayer = { name: pName, avg: avg };
+            }
+
+            let ronnyPct = pData.turns > 0 ? Math.round((pData.ronnys / pData.turns) * 100) : 0;
+            if (ronnyPct > highestRonnyPercentage.pct && pData.turns >= 10) {
+                highestRonnyPercentage = { name: pName, pct: ronnyPct };
+            }
         });
 
-        let cardGeneral = `
-            <div class="nerd-card-clean" style="grid-column: 1 / -1;">
-                <div class="nerd-card-header">🌐 Gesamtequipment & Universum</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 5px;">
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Absolvierte Spiele:</span>
-                        <span class="nerd-stat-val">${archive.length}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Gespielte Runden:</span>
-                        <span class="nerd-stat-val">${totalRoundsAll}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Punkte gesamt:</span>
-                        <span class="nerd-stat-val">${totalPointsAll.toLocaleString()}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Ronnys gesamt (0er):</span>
-                        <span class="nerd-stat-val" style="color:var(--ronny);">${totalZerosAll}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Höchster Einzelwurf:</span>
-                        <span class="nerd-stat-val" style="color:var(--win);">${highestSingleThrow.val} <small>(${highestSingleThrow.player})</small></span>
-                    </div>
+        let ronnyPlayersStr = longestRonnyStreak.players.join(', ');
+        let noRonnyPlayersStr = longestNoRonnyStreak.players.join(', ');
+
+        content.innerHTML = `
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">⏱️ Zeit-Rekorde</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Schnellstes Spiel:</span>
+                    <span class="nerd-stat-val">${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Langsamstes Spiel:</span>
+                    <span class="nerd-stat-val">${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🤡 Ronny-Museum (Nuller)</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ewiger Ronny-König:</span>
+                    <span class="nerd-stat-val">${ronnyKing.name} (${ronnyKing.count}x 0)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys am Stück:</span>
+                    <span class="nerd-stat-val">${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${ronnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchste Ronny-Quote:</span>
+                    <span class="nerd-stat-val">${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}%)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ronnys Gesamt:</span>
+                    <span class="nerd-stat-val">${totalRonnysGlobal} Stück</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys in 1 Partie:</span>
+                    <span class="nerd-stat-val">${gameWithMostRonnys.ronnys} Stück</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${gameWithMostRonnys.date})</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🎲 Serien & Lauf</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Serie ohne Ronny:</span>
+                    <span class="nerd-stat-val">${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${noRonnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Kürzeste Partie:</span>
+                    <span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Partie:</span>
+                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
+                <div class="nerd-stat-row" style="margin-top:2px;">
+                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
+                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
+                </div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">📊 Kategorie-Könige</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">350 – 450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">500 – 700:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">750 – 950:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1000 – 1450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1500+:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
+                </div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
+                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
+                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
+                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
+                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
                 </div>
             </div>
         `;
 
-        let totalThrowsAllCount = Object.values(playerStatsMap).reduce((acc, p) => acc + p.totalThrows, 0);
-
-        let playerCards = Object.keys(playerStatsMap).map(pIdx => {
-            let p = playerStatsMap[pIdx];
-            let avgThrow = p.totalThrows > 0 ? Math.round(p.totalPoints / p.totalThrows) : 0;
-            let zeroRate = p.totalThrows > 0 ? ((p.zerosCount / p.totalThrows) * 100).toFixed(1) : "0.0";
-
-            return `
-                <div class="nerd-card-clean">
-                    <div class="nerd-card-header">👤 ${p.name}</div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Ewige Siege:</span>
-                        <span class="nerd-stat-val" style="color:#f1c40f;">👑 ${p.wins}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Gesamte Punkte:</span>
-                        <span class="nerd-stat-val">${p.totalPoints.toLocaleString()}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Durchschnitt / Wurf:</span>
-                        <span class="nerd-stat-val" style="color:var(--accent);">${avgThrow} Pkt</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Höchster Wurf:</span>
-                        <span class="nerd-stat-val" style="color:var(--win);">${p.maxThrow}</span>
-                    </div>
-                    <div class="nerd-stat-row">
-                        <span class="nerd-stat-label">Ronny-Quote (0er):</span>
-                        <span class="nerd-stat-val" style="color:var(--ronny);">${p.zerosCount} (${zeroRate}%)</span>
-                    </div>
-                    <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 0.75rem; color: #aaa;">
-                        <b>Verteilung:</b> 
-                        0: <span style="color:var(--ronny);">${p.categories.ronny}</span> | 
-                        350-450: ${p.categories.small} | 
-                        500-700: ${p.categories.med} | 
-                        750-950: ${p.categories.big} | 
-                        1k-1.4k: ${p.categories.elite} | 
-                        >1.5k: <span style="color:var(--accent);">${p.categories.meister}</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        content.innerHTML = cardGeneral + playerCards;
+        view.classList.add('active');
     }
 
-    function saveCSV() {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "NAMES," + pNames.join(",") + "\n";
-        csvContent += "START_IDX," + startIdx + "\n";
-        csvContent += "SCORES_START\n";
-        scores.forEach(row => {
-            csvContent += row.join(",") + "\n";
-        });
-        csvContent += "SCORES_END\n";
-        csvContent += "ARCHIVE_START\n";
-        csvContent += JSON.stringify(archive) + "\n";
-        csvContent += "ARCHIVE_END\n";
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `wuerfelboard_backup_${new Date().toISOString().slice(0,10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function loadCSV(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                const text = evt.target.result;
-                const lines = text.split("\n");
-                let newNames = [];
-                let newStartIdx = 0;
-                let newScores = [];
-                let newArchive = [];
-
-                let inScores = false;
-                let inArchive = false;
-                let archiveJsonStr = "";
-
-                lines.forEach(line => {
-                    let trimmed = line.trim();
-                    if (!trimmed) return;
-
-                    if (trimmed.startsWith("NAMES,")) {
-                        newNames = trimmed.replace("NAMES,", "").split(",");
-                    } else if (trimmed.startsWith("START_IDX,")) {
-                        newStartIdx = parseInt(trimmed.replace("START_IDX,", "")) || 0;
-                    } else if (trimmed === "SCORES_START") {
-                        inScores = true;
-                    } else if (trimmed === "SCORES_END") {
-                        inScores = false;
-                    } else if (trimmed === "ARCHIVE_START") {
-                        inArchive = true;
-                    } else if (trimmed === "ARCHIVE_END") {
-                        inArchive = false;
-                    } else if (inScores) {
-                        newScores.push(trimmed.split(","));
-                    } else if (inArchive) {
-                        archiveJsonStr += trimmed;
-                    }
-                });
-
-                if (newNames.length > 0) pNames = newNames;
-                startIdx = newStartIdx;
-                if (newScores.length > 0) scores = newScores;
-                if (archiveJsonStr) {
-                    try { newArchive = JSON.parse(archiveJsonStr); } catch(err) {}
-                }
-                if (newArchive.length > 0) archive = newArchive;
-
-                recalculateKingOfTheHill();
-                save();
-                render();
-                openAlert("Backup Geladen", "Daten wurden erfolgreich importiert!");
-            } catch(err) {
-                openAlert("Fehler", "Fehler beim Lesen der Datei: " + err.message);
+    window.addEventListener('scroll', () => {
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        
+        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
+            if (stickyCopy.style.display !== 'block') {
+                stickyCopy.style.display = 'block';
+                renderRaceTrack();
             }
-        };
-        reader.readAsText(file);
+        } else {
+            stickyCopy.style.display = 'none';
+        }
+    }, { passive: true });
+
+    // Globale Aktivitätstracking für Inaktivitäts-Timer
+    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (isPaused) {
+                resumeFromPause();
+            } else {
+                resetInactivityTimer();
+            }
+        }, { passive: true });
+    });
+
+    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
+    
+    const page1 = document.getElementById('padPage1');
+    for(let v=350; v<=1300; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page1.appendChild(b); 
     }
 
-    // INITIALISIERUNG
-    buildPadUI();
-    initHeaderStatus();
+    const page2 = document.getElementById('padPage2');
+    for(let v=1350; v<=2500; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page2.appendChild(b); 
+    }
+
+    const page3 = document.getElementById('padPage3');
+    for(let v=2550; v<=3700; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page3.appendChild(b); 
+    }
+
+    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
+    function updateTimeAndDuration() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeElem = document.getElementById('time-display');
+        if (timeElem) {
+            timeElem.innerText = `${hours}:${minutes}`;
+        }
+
+        const elapsedElem = document.getElementById('elapsed-display');
+        if (elapsedElem) {
+            let diffMs = accumulatedTimeMs;
+            if (gameActive && currentTurnStartTime && !isPaused) {
+                diffMs += (now.getTime() - currentTurnStartTime);
+            }
+            const totalSec = Math.floor(diffMs / 1000);
+            const eHours = Math.floor(totalSec / 3600);
+            const eMin = Math.floor((totalSec % 3600) / 60);
+            const eSec = totalSec % 60;
+            
+            if (eHours > 0) {
+                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
+            } else {
+                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
+            }
+        }
+    }
+
+    setInterval(updateTimeAndDuration, 1000);
+    updateTimeAndDuration();
+
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBattery() {
+                const level = Math.round(battery.level * 100);
+                const batElem = document.getElementById('battery-display');
+                if (batElem) batElem.innerText = `🔋 ${level}%`;
+            }
+            updateBattery();
+            battery.addEventListener('levelchange', updateBattery);
+        });
+    }
+
     render();
     checkChangelog();
-    checkForUpdates();
 </script>
 </body>
 </html>
