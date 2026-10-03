@@ -1185,8 +1185,6 @@ if (!currentGameId) {
             if (!response.ok) throw new Error('API Fehler: ' + response.statusText);
             
             const files = await response.json();
-
-            // Nur MP3-Dateien herausfiltern und vorladen
             const mp3Files = files.filter(file => file.name.endsWith('.mp3'));
 
             mp3Files.forEach(file => {
@@ -1203,7 +1201,6 @@ if (!currentGameId) {
         }
     }
 
-    // Preloading beim Aufruf starten
     preloadAllAudioDynamically();
 
     function playCustomAudio(filename) {
@@ -1215,7 +1212,6 @@ if (!currentGameId) {
                 audio.currentTime = 0;
                 audio.play().catch(e => playOscillatorFallback());
             } else {
-                // Fallback für den Fall, dass eine Datei noch nicht geladen war
                 const audio = new Audio(path);
                 audioCache[path] = audio;
                 audio.play().catch(e => playOscillatorFallback());
@@ -1259,14 +1255,15 @@ if (!currentGameId) {
             overlay.appendChild(container);
             document.body.appendChild(overlay);
 
-            setTimeout(() => {
-                playCustomAudio(`${fakeNumber}.mp3`);
-            }, 500);
+            // 1. Sofort den Punkte-Sound spielen zur Täuschung!
+            playCustomAudio('punkte.mp3');
 
+            // Nach 1.0s Rütteln
             setTimeout(() => {
                 text.classList.add('shake-before-pop');
             }, 1000);
 
+            // 2. Nach 2.8s: Explosion in Partikel, 0 knallt rein & Ronny-Sound ertönt
             setTimeout(() => {
                 text.remove();
 
@@ -1297,6 +1294,21 @@ if (!currentGameId) {
                 zeroText.className = 'number-pop-text zero-boom';
                 zeroText.innerText = '0';
                 container.appendChild(zeroText);
+
+                // Zufälligen Ronny-Nuller-Sound exakt im Momment des Knalls abspielen
+                const zeroSounds = [
+                    'und-weg.mp3',
+                    'alles-nullen-schnell.mp3',
+                    'garnix.mp3',
+                    'ich-hab-garnix-gemacht.mp3',
+                    'mach-garnix.mp3',
+                    'mop-mop-mop.mp3',
+                    'nicht-clever.mp3',
+                    'orginale-nichtskoenner.mp3',
+                    'zonk.mp3'
+                ];
+                const randomZeroSound = zeroSounds[Math.floor(Math.random() * zeroSounds.length)];
+                playCustomAudio(randomZeroSound);
 
             }, 2800);
 
@@ -1657,6 +1669,17 @@ function setV(v) {
     if (undoHistory.length > 3) {
         undoHistory.shift();
     }
+
+
+    if (v === 0) {
+        // Bei normaler Null sofort spielen (wenn KEINE Explosion läuft)
+        if (!triggerExplosionRunning) { 
+            // soundFile = zeroSound...
+        }
+    } else {
+        soundFile = 'punkte.mp3';
+    }
+
 
     // --- SOUND-AUSWAHL BAUSTEIN ---
     let soundFile;
