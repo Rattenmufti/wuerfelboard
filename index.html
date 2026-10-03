@@ -1,0 +1,2931 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#e67e22">
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    
+    <title>Würfelboard v<span class="app-version-text"></span> Stable</title>
+    <!-- Chart.js für die Tortendiagramme im Popup -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50; --accent: #e67e22; --win: #27ae60; --ronny: #e74c3c;
+            --bg: #1a1a1a; --card-bg: #2c2c2c; --text: #eeeeee; --border: #444444;
+            --input-focus: #3d3d3d; --table-head: #111111;
+            --score-main: #000000; --orange-bar: #ff9800;
+            --locked: #f1c40f;
+            --near-win-bg: #d35400;
+            --track-bg: #1e272e;
+            --track-name: #ffffff;
+            --modal-backdrop: rgba(0, 0, 0, 0.75);
+        }
+        body.light-mode {
+            --bg: #f8f9fa; --card-bg: #ffffff; --text: #1a1a1a; --border: #cccccc;
+            --input-focus: #fffde7; --table-head: #2c3e50;
+            --score-main: #111111; --orange-bar: #e67e22;
+            --near-win-bg: #ffeaa7;
+            --track-bg: #dcdde1;
+            --track-name: #2c3e50;
+            --modal-backdrop: rgba(0, 0, 0, 0.6);
+        }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* --- MOBILE TUNING --- */
+        body.mobile-mode .app { 
+            display: flex; 
+            flex-direction: column; 
+            padding-bottom: 340px !important; 
+            width: 100vw;
+            max-width: 100vw;
+            border-radius: 0;
+            height: auto !important;
+            overflow-x: hidden !important;
+        } 
+        body.mobile-mode .game-container {
+            flex: none !important;
+            height: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: visible !important;
+        }
+        body.mobile-mode .quick-pad { 
+            position: fixed; bottom: 0; left: 0; width: 100vw !important;
+            background: var(--card-bg); 
+            padding: 6px; border-top: 3px solid var(--accent);
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.6); z-index: 1100; box-sizing: border-box;
+            align-self: stretch !important;
+            height: auto !important;
+            display: block !important;
+        }
+        body.mobile-mode .pad-btn { padding: 15px 0 !important; font-size: 1rem !important; }
+        body.mobile-mode .btn-ronny { 
+            grid-column: span 3 !important; 
+        }
+        body.mobile-mode .btn-undo { 
+            grid-column: span 1 !important; 
+        }
+        
+        body.mobile-mode .table-area { 
+            max-height: none !important; 
+            overflow-x: auto !important; 
+            overflow-y: visible !important;
+            margin-bottom: 20px;
+            flex: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+        
+        body.mobile-mode table { width: 100%; min-width: 100%; margin-bottom: 0; table-layout: fixed; }
+        body.mobile-mode tfoot td { 
+            position: relative; 
+            z-index: 10; 
+            background: var(--orange-bar); 
+            border-top: 2px solid #000; 
+            padding: 8px 2px !important;
+            top: -10px;
+        }
+        body.mobile-mode .score-box {
+            justify-content: space-between !important;
+            gap: 2px;
+        }
+        body.mobile-mode .score-mobile-name {
+            display: block !important;
+            font-size: 0.75rem !important;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* FIXIERTE RENNBAHN-KOPIE (OVERLAY) */
+        .race-track-sticky-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            z-index: 1200;
+            box-sizing: border-box;
+            padding: 10px;
+            background: var(--track-bg);
+            border-bottom: 3px solid var(--accent);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+            display: none;
+        }
+        body.mobile-mode .race-track-sticky-overlay .race-lane { height: 40px !important; }
+        body.mobile-mode .race-track-sticky-overlay .race-name-field { width: 75px !important; min-width: 75px !important; font-size: 0.75rem !important; }
+        body.mobile-mode .race-track-sticky-overlay .race-horse-emoji { font-size: 1.8rem !important; }
+        body.mobile-mode .race-track-sticky-overlay .race-horse-text { font-size: 0.7rem !important; }
+
+        /* --- PAUSE OVERLAY STYLES --- */
+        .pause-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            cursor: pointer;
+        }
+        .pause-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .pause-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            text-shadow: 0 0 20px rgba(230, 126, 34, 0.8);
+            letter-spacing: 4px;
+            animation: pulsePause 2s infinite ease-in-out;
+            user-select: none;
+        }
+        .pause-subtext {
+            font-size: 1rem;
+            color: #ffffff;
+            margin-top: 15px;
+            opacity: 0.8;
+            user-select: none;
+        }
+        @keyframes pulsePause {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.08); opacity: 0.4; }
+        }
+
+        /* --- MOBILE LANDSCAPE TUNING --- */
+        @media (orientation: landscape) {
+            body.mobile-mode .app {
+                padding-bottom: 0px !important;
+                box-sizing: border-box;
+            }
+            body.mobile-mode.few-players .app {
+                padding-right: 280px !important;
+            }
+            body.mobile-mode.many-players .app {
+                padding-right: 185px !important;
+            }
+            body.mobile-mode .quick-pad {
+                top: 0 !important;
+                right: 0 !important;
+                left: auto !important;
+                bottom: 0 !important;
+                height: 100vh !important;
+                border-top: none !important;
+                border-left: 3px solid var(--accent);
+                box-shadow: -10px 0 25px rgba(0,0,0,0.6);
+                padding: 6px;
+                align-self: stretch !important;
+            }
+            body.mobile-mode.few-players .quick-pad {
+                width: 270px !important;
+            }
+            body.mobile-mode.many-players .quick-pad {
+                width: 175px !important;
+            }
+            body.mobile-mode .pad-btn {
+                padding: 10px 0 !important;
+                font-size: 0.9rem !important;
+            }
+            body.mobile-mode .btn-ronny {
+                grid-column: span 2 !important;
+            }
+            body.mobile-mode .btn-undo {
+                grid-column: span 1 !important;
+            }
+
+            body.mobile-mode .table-area {
+                height: calc(100vh - 20px) !important;
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+                overflow-y: auto !important;
+            }
+
+            body.mobile-mode table {
+                height: auto !important;
+            }
+
+            body.mobile-mode tfoot td {
+                position: sticky !important;
+                bottom: 0 !important;
+            }
+
+            body.mobile-mode .table-area {
+                scroll-padding-bottom: 72px !important;
+            }
+        }
+
+        /* Container für die zerspringenden Splitter */
+.shatter-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Heftiges Wackeln vor der Explosion */
+@keyframes violentShake {
+    0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+    20% { transform: scale(1.05) translate(-8px, 6px) rotate(-6deg); }
+    40% { transform: scale(1.1) translate(8px, -6px) rotate(6deg); }
+    60% { transform: scale(1.15) translate(-12px, -4px) rotate(-10deg); }
+    80% { transform: scale(1.2) translate(12px, 4px) rotate(10deg); }
+    100% { transform: scale(1.25) translate(0, 0) rotate(0deg); opacity: 0; }
+}
+
+/* Explosion der 0 heraus aus dem Einschlag */
+@keyframes zeroImpact {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; filter: blur(10px); }
+    50% { transform: scale(1.4) rotate(10deg); opacity: 1; filter: blur(0); }
+    70% { transform: scale(0.9) rotate(-5deg); }
+    85% { transform: scale(1.1) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.shake-before-pop {
+    animation: violentShake 1.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+.zero-boom {
+    animation: zeroImpact 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Fliegende Trümmer/Partikel */
+.shard {
+    position: absolute;
+    font-weight: 900;
+    font-size: min(20vw, 35vh);
+    color: var(--accent);
+    opacity: 1;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: flyShard 2.0s ease-out forwards;
+}
+
+@keyframes flyShard {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.2) rotate(var(--rot));
+        opacity: 0;
+    }
+}
+
+/* Optische Schockwelle */
+.shockwave {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 10px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+    pointer-events: none;
+    animation: expandShockwave 0.5s ease-out forwards;
+}
+
+@keyframes expandShockwave {
+    0% { transform: scale(0.1); opacity: 1; border-width: 15px; }
+    100% { transform: scale(6); opacity: 0; border-width: 1px; }
+}
+
+        /* --- BASE / DESKTOP --- */
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); display: flex; justify-content: center; transition: 0.3s; }
+        
+        .app { 
+            background: var(--card-bg); 
+            border-radius: 0; 
+            padding: 15px; 
+            width: 100vw; 
+            max-width: none; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            height: 100vh; 
+            box-sizing: border-box;
+            overflow: hidden; 
+        }
+
+        .header-bar { position: relative; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
+        
+        body:not(.mobile-mode) .header-left {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        body:not(.mobile-mode) .header-status {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.95rem;
+            font-weight: bold;
+            gap: 10px;
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        body.mobile-mode .header-left {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        body.mobile-mode .header-status {
+            position: static;
+            transform: none;
+            margin-left: auto;
+            font-size: 0.9rem;
+            font-weight: bold;
+            gap: 8px;
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        @media (orientation: landscape) {
+            body.mobile-mode.few-players .header-left {
+                max-width: calc(100vw - 280px);
+                padding-right: 10px;
+            }
+            body.mobile-mode.many-players .header-left {
+                max-width: calc(100vw - 185px);
+                padding-right: 10px;
+            }
+        }
+
+
+        .btn-top { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stats-section { background: var(--table-head); color: white; padding: 8px; border-radius: 10px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; flex-shrink: 0; }
+        .stat-item { border-right: 1px solid #444; display: flex; flex-direction: column; }
+        .stat-name { font-size: 0.6rem; color: #888; }
+        .stat-wins { font-size: 0.9rem; font-weight: bold; color: #f1c40f; }
+        .stat-wins .pending-win { color: #27ae60; font-weight: bold; animation: blinker 1s linear infinite; margin-left: 2px; }
+        
+        .setup-section { background: rgba(128,128,128,0.1); padding: 8px; border-radius: 10px; flex-shrink: 0; }
+        .names-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+        .name-slot { display: flex; flex-direction: column; gap: 4px; background: var(--card-bg); padding: 6px; border-radius: 8px; border: 1px solid var(--border); }
+        .name-slot input { border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.1); color: transparent; text-shadow: 0 0 0 var(--text); caret-color: transparent; text-align: center; padding: 4px; }
+        .btn-starter { font-size: 0.6rem; padding: 3px; cursor: pointer; border: none; border-radius: 4px; background: #444; color: #ccc; }
+        .btn-starter.active { background: var(--accent); color: white; }
+        
+        .game-container { display: flex; flex-direction: row; gap: 15px; flex: 1; min-height: 0; overflow: hidden; }
+        
+        .table-area { 
+            flex: 2; 
+            background: rgba(0,0,0,0.05); 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            height: 100%; 
+            overflow-y: auto; 
+        }
+
+        table { width: 100%; max-width: 100%; border-collapse: collapse; table-layout: fixed; }
+        
+        thead { position: sticky; top: 0; z-index: 100; }
+        thead th { background: var(--table-head); color: white; padding: 10px 2px; font-size: 0.8rem; border: 1px solid var(--border); }
+        
+        tfoot td { position: sticky; bottom: 0; z-index: 90; background: var(--orange-bar); color: var(--score-main); font-weight: bold; }
+        td { border: 1px solid var(--border); height: 42px; text-align: center; }
+        
+        .score-input { width: 100%; height: 100%; border: none; text-align: center; font-size: 1.1rem; background: transparent; color: transparent; text-shadow: 0 0 0 var(--text); caret-color: transparent; outline: none; }
+        .score-input.system-focus { 
+            box-shadow: inset 0 0 0 3px var(--accent); 
+            font-weight: bold; 
+            animation: activeCellGlow 3s ease-in-out infinite;
+            background-clip: padding-box;
+            padding: 3px; 
+            box-sizing: border-box;
+        }
+
+        @keyframes activeCellGlow {
+            0%, 100% { 
+                background-color: transparent; 
+                box-shadow: inset 0 0 0 3px var(--accent);
+            }
+            50% { 
+                background-color: rgba(230, 126, 34, 0.4); 
+                box-shadow: inset 0 0 0 3px transparent;
+            }
+        }
+        
+        /* --- PAD SEITEN ARCHITEKTUR --- */
+        .quick-pad { width: 450px; flex-shrink: 0; align-self: stretch; height: 100%; position: relative; }
+        .pad-viewport { width: 100%; height: calc(100% - 15px); overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .pad-viewport::-webkit-scrollbar { display: none; }
+        .pad-viewport { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* SEITEN-ARCHITEKTUR (Garantierte 6-Zeilen-Gleichheit für alle Seiten) */
+        .pad-page { 
+            min-width: 100%; width: 100%; height: 100%; 
+            scroll-snap-align: start; scroll-snap-stop: always; 
+            display: grid !important; 
+            grid-template-columns: repeat(4, 1fr) !important; 
+            /* Zwingt jede Zeile auf allen 3 Seiten exakt auf 1/6 der Gesamthöhe minus Abstände (5 Lücken * 8px = 40px) */
+            grid-template-rows: repeat(6, calc((100% - 40px) / 6)) !important; 
+            gap: 8px !important; 
+            box-sizing: border-box !important; 
+            overflow: hidden !important;
+        }
+
+        body.mobile-mode .pad-page { 
+            height: 100% !important;
+            grid-template-columns: repeat(4, 1fr) !important; 
+            grid-template-rows: repeat(6, calc((100% - 40px) / 6)) !important; 
+        }
+
+        body.mobile-mode .pad-viewport { height: calc(100% - 15px) !important; }
+
+        @media (orientation: landscape) {
+            body.mobile-mode .pad-page { 
+                grid-template-columns: repeat(3, 1fr) !important; 
+                /* Querformat: 8 Zeilen (7 Lücken * 8px = 56px) */
+                grid-template-rows: repeat(8, calc((100% - 56px) / 8)) !important;
+            }
+            body.mobile-mode .pad-viewport { height: calc(100% - 15px) !important; overflow-y: auto; }
+        }
+
+        .pad-dots { display: flex; justify-content: center; gap: 6px; margin-top: 5px; height: 10px; align-items: center; }
+        .pad-dot { width: 6px; height: 6px; background: #555; border-radius: 50%; transition: 0.2s; }
+        .pad-dot.active { background: var(--accent); width: 8px; height: 8px; }
+
+        /* BUTTONS */
+        .pad-btn { 
+            padding: 0 2px; 
+            border: none; 
+            border-radius: 8px; 
+            background: #34495e; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 100% !important; 
+            height: 100% !important; 
+            box-sizing: border-box !important; 
+        }
+        .pad-btn:disabled { background: #555; color: var(--locked); }
+
+        .btn-ronny { 
+            background: var(--ronny) !important; 
+            grid-column: span 3 !important; 
+            grid-row: span 1 !important;
+            height: 100% !important;
+        }
+        .btn-undo { 
+            background: #7f8c8d !important; 
+            grid-column: span 1 !important; 
+            grid-row: span 1 !important;
+            height: 100% !important;
+            font-size: 1.4rem; 
+        }
+
+        body.mobile-mode .btn-ronny { grid-column: span 3 !important; grid-row: span 1 !important; }
+        body.mobile-mode .btn-undo { grid-column: span 1 !important; grid-row: span 1 !important; }
+
+        @media (orientation: landscape) {
+            body.mobile-mode .btn-ronny { grid-column: span 2 !important; grid-row: span 1 !important; }
+            body.mobile-mode .btn-undo { grid-column: span 1 !important; grid-row: span 1 !important; }
+        }
+
+        
+        .score-box { display: flex; flex-direction: column; line-height: 1.1; height: 100%; justify-content: center; }
+        .score-box.near-win { animation: nearWinBlinker 1.2s linear infinite; }
+        .score-box.winner-blink { background-color: var(--win); animation: blinker 1.2s linear infinite; }
+        .score-box.winner-blink .score-down { color: #ffffff !important; }
+        .score-box.winner-blink .score-up { color: rgba(255, 255, 255, 0.8) !important; }
+        .score-mobile-name { display: none; }
+        
+        @keyframes blinker {
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes nearWinBlinker {
+            0% { background-color: var(--orange-bar); }
+            50% { background-color: transparent; }
+            100% { background-color: var(--orange-bar); }
+        }
+
+        .score-up { font-size: 1.0rem; color: rgba(0, 0, 0, 0.65); font-weight: bold; }
+        .score-down { font-size: 1.6rem; color: #000000; font-weight: 900; }
+        
+        .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; flex-shrink: 0; opacity: 1; max-height: 500px; overflow: hidden; transition: max-height 0.2s ease-out, opacity 0.15s ease-out; }
+        .analysis-card { background: rgba(128,128,128,0.1); padding: 10px; border-radius: 8px; border-top: 3px solid var(--accent); border: 1px solid var(--border); }
+        .analysis-grid.slide-hide { max-height: 0 !important; opacity: 0 !important; padding-top: 0 !important; margin-top: 0 !important; border: none !important; }
+
+        /* --- RENNBAHN ARCHITEKTUR --- */
+        .race-track-container { display: block; background: var(--track-bg); border: 2px solid var(--accent); border-radius: 12px; padding: 10px; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); max-height: 0; opacity: 0; overflow: hidden; border-color: transparent; padding-top: 0; padding-bottom: 0; margin-top: 0; transition: max-height 0.2s ease-out, opacity 0.15s ease-out; }
+        .race-track-container.slide-show { max-height: 500px; opacity: 1; border-color: var(--accent); padding-top: 10px; padding-bottom: 10px; margin-top: 10px; }
+        
+        .race-lane { display: flex; align-items: center; justify-content: flex-start; position: relative; height: 46px; border-bottom: 1px dashed rgba(128,128,128,0.3); padding-right: 50px; box-sizing: border-box; cursor: pointer; transition: background 0.1s; }
+        .race-lane:hover { background: rgba(255,255,255,0.05); }
+        .race-lane:last-child { border-bottom: none; }
+        
+        .race-name-field { width: 90px; min-width: 90px; font-size: 0.85rem; font-weight: bold; color: var(--track-name); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px; z-index: 5; }
+        .race-track-path { flex: 1; position: relative; height: 100%; display: flex; align-items: center; }
+
+        .race-horse-wrapper { position: absolute; left: 0; display: flex; align-items: center; height: 100%; white-space: nowrap; transition: left 4.5s cubic-bezier(0.25, 1, 0.5, 1); will-change: left; }
+        
+        .race-horse-emoji { font-size: 2.0rem; z-index: 2; margin-left: 4px; display: inline-block; } 
+        .race-horse-emoji.mirror { transform: scaleX(-1); }
+        
+        .race-horse-text { font-size: 0.8rem; font-weight: bold; background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 4px; color: #fff; }
+        
+        .race-finish-line { position: absolute; right: 0px; top: 0; bottom: 0; width: 2px; border-left: 2px dashed #ffffff; display: flex; align-items: center; justify-content: flex-start; padding-left: 4px; font-size: 1.1rem; z-index: 4; }
+
+        body.mobile-mode .race-lane { height: 40px !important; } 
+        body.mobile-mode .race-name-field { width: 75px !important; min-width: 75px !important; font-size: 0.75rem !important; }
+        body.mobile-mode .race-horse-emoji { font-size: 1.8rem !important; } 
+        body.mobile-mode .race-horse-text { font-size: 0.7rem !important; }
+
+        #histView { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:none; padding:10px; overflow-y:auto; box-sizing: border-box; }
+        
+        /* --- MODERNE, OVERLAY-BASIERTE NERD STATISTIK (CLEAN & ERWACHSEN) --- */
+        #nerdStatsView { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 3000; display: flex; justify-content: center; align-items: center; 
+            padding: 15px; box-sizing: border-box; 
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        #nerdStatsView.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .nerd-stats-container {
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 14px; 
+            max-width: 900px; width: 100%; max-height: 90vh; 
+            display: flex; flex-direction: column; 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); 
+            overflow: hidden;
+            transform: scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #nerdStatsView.active .nerd-stats-container {
+            transform: scale(1);
+        }
+        .nerd-stats-header {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 18px; background: rgba(0, 0, 0, 0.25); 
+            border-bottom: 1px solid var(--border);
+        }
+        .nerd-stats-title {
+            color: var(--accent); margin: 0; font-size: 1.1rem; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .nerd-stats-close-btn {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border);
+            color: var(--text); width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.15s;
+        }
+        .nerd-stats-close-btn:hover {
+            background: var(--ronny); color: #fff; border-color: transparent;
+        }
+        .nerd-stats-body {
+            padding: 16px; overflow-y: auto; flex: 1;
+        }
+        .nerd-card-clean {
+            background: rgba(0, 0, 0, 0.2); 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            padding: 12px 14px; 
+            box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .nerd-card-header {
+            font-weight: bold; font-size: 0.85rem; color: var(--accent); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+            padding-bottom: 5px; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .nerd-stat-row {
+            display: flex; justify-content: space-between; align-items: baseline; 
+            font-size: 0.82rem; line-height: 1.3;
+        }
+        .nerd-stat-label { color: rgba(255, 255, 255, 0.7); }
+        .nerd-stat-val { font-weight: 700; color: var(--text); text-align: right; }
+        .nerd-stat-sub { font-size: 0.7rem; color: rgba(255, 255, 255, 0.4); margin-top: -2px; }
+
+        .history-item { background:#333; padding:8px 12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; color:white; font-size: 0.85rem; border-left: 4px solid var(--accent); }
+        .btn-load-hist { background:var(--win); border:none; color:white; padding:6px 10px; border-radius:4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+
+        .emoji-picker-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); z-index: 2500;
+            display: none; justify-content: center; align-items: center; box-sizing: border-box;
+            padding: 15px;
+        }
+        .emoji-picker-content {
+            background: var(--card-bg); border: 2px solid var(--accent); border-radius: 12px;
+            padding: 15px; max-width: 320px; width: 100%; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .emoji-picker-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px;
+        }
+        .emoji-select-btn {
+            font-size: 1.8rem; background: rgba(0,0,0,0.15); border: 1px solid var(--border);
+            border-radius: 8px; cursor: pointer; padding: 5px 0; transition: transform 0.1s, background 0.1s;
+        }
+        .emoji-select-btn:hover { background: var(--accent); transform: scale(1.1); }
+
+        .custom-modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--modal-backdrop); z-index: 4000;
+            display: none; justify-content: center; align-items: center; box-sizing: border-box;
+            padding: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        }
+        .custom-modal-content {
+            background: var(--card-bg); border: 3px solid var(--accent); border-radius: 16px;
+            padding: 20px; max-width: 420px; width: 100%; text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            color: var(--text); box-sizing: border-box;
+            animation: modalPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: max-width 0.3s ease, width 0.3s ease;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .custom-modal-title { margin: 0 0 12px 0; color: var(--accent); font-size: 1.3rem; font-weight: bold; }
+        .custom-modal-text { font-size: 1rem; line-height: 1.4; margin-bottom: 20px; white-space: pre-line; text-align: center; }
+        .custom-modal-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { flex: 1; border: none; padding: 12px 0; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; color: white; }
+        .modal-btn-yes { background: var(--win); }
+        .modal-btn-no { background: var(--ronny); }
+        .modal-btn-ok { background: var(--primary); }
+
+/* --- XXL ZAHLEN-POPUP ANIMATION --- */
+.number-pop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    /* Verhindert horizontales Scrollen/Überlaufen garantiert */
+    box-sizing: border-box;
+    padding: 0 4vw; 
+}
+
+.number-pop-text {
+    /* 
+       - Hochformat (Portrait): 45vw reicht für die breitesten Zahlen aus, ohne überzustehen.
+       - Querformat (Landscape): 70vh nutzt die Bildschirmhöhe auf Desktops richtig gut aus.
+    */
+    font-size: min(38vw, 70vh); 
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: 0 0 35px rgba(230, 126, 34, 0.8), 0 10px 30px rgba(0,0,0,0.8);
+    line-height: 1;
+    user-select: none;
+    transform: scale(0);
+    opacity: 0;
+    white-space: nowrap;
+    will-change: transform, opacity;
+    animation: flyExpandPulseExit 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes flyExpandPulseExit {
+    /* 0.0s - 0.5s: Warten (Verzögerung nach Klick) */
+    0%, 20% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    /* 0.5s - 1.1s: Aus dem Hintergrund einfliegen & auf volle Breite ausdehnen */
+    44% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 1.1s - 1.7s: 1. Pulsieren */
+    56% {
+        transform: scale(1.15);
+    }
+    68% {
+        transform: scale(1);
+    }
+    /* 1.7s - 2.3s: 2. Pulsieren */
+    80% {
+        transform: scale(1.15);
+    }
+    92% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* 2.3s - 2.8s: Verschwinden (unter 3s Gesamtdauer) */
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+        
+        /* STYLES FÜR END-POPUP CHARTS MIT BREITER ANPASSUNG (OHNE SCROLLEN) */
+        #customModal.game-over-modal .custom-modal-content {
+            max-width: 95vw !important;
+            width: 95vw !important;
+            padding: 12px 18px !important;
+        }
+
+        .modal-charts-wrapper {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .modal-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 0px;
+            justify-content: center;
+        }
+
+        .global-chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 14px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text);
+        }
+
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .player-chart-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 8px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        
+        .player-chart-card.total-chart-card {
+            border: 2px solid var(--accent);
+            background: rgba(230, 126, 34, 0.08);
+        }
+
+        .chart-canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 180px;
+            height: 120px;
+            margin: 0 auto;
+            top: -20px;
+        }
+
+        /* CHANGELOG STYLE */
+        .changelog-list { text-align: left; margin: 15px 0; padding-left: 20px; font-size: 0.9rem; line-height: 1.5; }
+        .changelog-list li { margin-bottom: 6px; }
+        .dont-show-again { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; margin-top: 15px; cursor: pointer; color: #ccc; }
+        .dont-show-again input { cursor: pointer; width: 16px; height: 16px; }
+
+/* --- DESKTOP ADJUSTMENTS FÜR DIE END-POPUP CHARTS --- */
+@media (min-width: 1024px) {
+    .chart-canvas-container {
+        top: -25px !important;         /* Zieht das Diagramm ein Stück höher */
+        height: 190px !important;      /* Reduziert die Höhe, damit es nicht unten rausragt */
+        max-width: 240px !important;   /* Macht die Kreise einen Tick kompakter */
+    }
+    .player-chart-card {
+        padding: 12px 10px !important;
+        min-height: 240px;
+    }
+}
+    </style>
+</head>
+<body id="mainBody">
+
+<div id="pauseOverlay" class="pause-overlay" onclick="resumeFromPause()">
+    <div class="pause-text">PAUSE</div>
+    <div class="pause-subtext">Klicke irgendwo hin, um fortzufahren</div>
+</div>
+
+<div id="raceTrackStickyCopy" class="race-track-sticky-overlay"></div>
+
+<div id="customModal" class="custom-modal-backdrop">
+    <div class="custom-modal-content">
+        <div id="customModalTitle" class="custom-modal-title">Meldung</div>
+        <div id="customModalText" class="custom-modal-text">Inhalt der Meldung...</div>
+        <div id="customModalButtons" class="custom-modal-buttons"></div>
+    </div>
+</div>
+
+<div id="changelogModal" class="custom-modal-backdrop">
+    <div class="custom-modal-content" style="max-width: 450px;">
+        <div class="custom-modal-title">Was ist neu in v<span class="app-version-text"></span>? 🚀</div>
+        <ul class="changelog-list">
+            <li>Nerd-Statistik hinzugefügt</li>
+            <li>Popup-Punktezahlen hinzugefügt</li>
+            <li>Neue Töne intigriert</li>
+            <li>Rundenzeiterfassung hinzugefügt</li>
+            <li>Pausenmodus nach 2 Minuten inaktivität eingefügt</li>
+            <li>Akkuanzeige hinzugefügt (nur Android)</li>
+            <li>Uhrzeit hinzugefügt (nur Android)</li>
+            <li>Menü neu strukturiert</li>
+            <li>„Rückgängig“-Pfeil eingefügt (max. 3 Schritte)</li>
+            <li>Automatischer Wechsel des Zahlenpads von Seite 2 und 3 zu Seite 1 bei Betätigung</li>
+            <li>Fehler beim Zählen von Siegen bei Unentschieden behoben</li>
+            <li>Fehler bei Tönen behoben (stellenweise doppelte Ausgabe)</li>
+            <li>Blinken der Zelle bei aktiven Spieler hinzugefügt</li>
+            <li>End-Popup integriert (gibt Statistiken am Rundenende grafisch wieder)</li>
+            <li>Automatischen Serverabgleich der Spielversion hinzugefügt</li>
+        </ul>
+        <label class="dont-show-again">
+            <input type="checkbox" id="chkHideChangelog">
+            <span>Nicht mehr anzeigen</span>
+        </label>
+        <div class="custom-modal-buttons" style="margin-top: 15px;">
+            <button class="modal-btn modal-btn-ok" onclick="closeChangelogModal()">Verstanden</button>
+        </div>
+    </div>
+</div>
+
+<div id="emojiPicker" class="emoji-picker-modal" onclick="closeEmojiPicker(event)">
+    <div class="emoji-picker-content" onclick="event.stopPropagation()">
+        <h3 id="emojiPickerTitle" style="margin: 0 0 5px 0; color: var(--accent); font-size: 1.1rem;">Gefährt wählen</h3>
+        <div style="font-size: 0.8rem; color: #aaa;">Wähle dein Symbol für die Rennbahn</div>
+        <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
+        <button class="btn-top" style="background: var(--ronny); margin-top: 15px; width: 100%; padding: 8px 0;" onclick="document.getElementById('emojiPicker').style.display='none'">Abbrechen</button>
+    </div>
+</div>
+
+<div class="app">
+    <div id="arcBanner" style="display:none; background:var(--accent); color:white; padding:10px; text-align:center; font-weight:bold; position:fixed; top:0; width:100%; z-index:2000;" onclick="exitArchive()">⚠️ ARCHIV ANSICHT (ZUM VERLASSEN KLICKEN)</div>
+
+    <div class="header-bar">
+        <div class="header-left">
+            <h2 style="margin:0; font-size: 0.8rem; color: var(--accent);">Würfelboard v<span class="app-version-text"></span> Stable</h2>
+            <div id="status-bar" class="header-status">
+                <span id="elapsed-display">⏱️ 00:00</span>
+                <span id="time-display">13:52</span>
+                <span id="battery-display">🔋 67%</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+            <div class="btn-group">
+                <button class="btn-top" onclick="saveCSV()">💾 BACKUP</button>
+                <button class="btn-top" onclick="document.getElementById('csvIn').click()">📂 LADEN</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
+                <button id="btnViewToggle" class="btn-top" onclick="toggleMobile()">📱 MOBIL</button>
+                <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🐎 RENNEN</button>
+                <button class="btn-top" onclick="toggleTheme()">🌓 MODE</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
+                <button class="btn-top" onclick="openNerdStats()" style="background:#9b59b6">🤓 NERD-STATS</button>
+                <button class="btn-top" onclick="finishCheck()" style="background:var(--win)">✨ NEU</button>
+                <button class="btn-top" onclick="askMasterReset()" style="background:#555">🔄 RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section" id="statsDisp"></div>
+    <div class="setup-section" id="setupArea"><div class="names-grid" id="namesGrid"></div></div>
+    
+    <div id="raceTrackUI" class="race-track-container"></div>
+    <div id="analysisUI" class="analysis-grid"></div>
+
+    <div class="game-container">
+        <div class="table-area">
+            <table>
+                <thead><tr id="hRow"></tr></thead>
+                <tbody id="gBody"></tbody>
+                <tfoot><tr id="tRow"></tr></tfoot>
+            </table>
+        </div>
+<div class="quick-pad" id="padUI">
+    <div class="pad-viewport" id="padViewport" onscroll="updatePadDots()">
+        
+        <!-- SEITE 1 -->
+        <div class="pad-page" id="padPage1">
+            <button class="pad-btn btn-ronny" onclick="setV(0)">0 (Ronny)</button>
+            <button class="pad-btn btn-undo" onclick="undoMove()" title="Rückgängig">↶</button>
+            <!-- Dein JS fügt die Zahlen 50, 100, 150... ab hier automatisch an -->
+        </div>
+
+        <div class="pad-page" id="padPage2"></div>
+        <div class="pad-page" id="padPage3"></div>
+    </div>
+
+    <div class="pad-dots">
+        <div class="pad-dot active" id="dot1"></div>
+        <div class="pad-dot" id="dot2"></div>
+        <div class="pad-dot" id="dot3"></div>
+    </div>
+</div>
+
+    </div>
+</div>
+
+<div id="histView">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding: 0 5px;">
+        <h2 style="color:white; margin:0; font-size: 1.2rem;">Historie</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn-top" onclick="fixAndRecalculateArchive()" style="background:#2196F3; padding: 5px 12px;">🔄 NEU EINLESEN</button>
+            <button class="btn-top" onclick="openNerdStats()" style="background:#9b59b6; padding: 5px 12px;">🤓 NERD-STATS</button>
+            <button class="btn-top" onclick="document.getElementById('histView').style.display='none'" style="background:var(--ronny); padding: 5px 15px;">X</button>
+        </div>
+    </div>
+    <div id="arcList"></div>
+</div>
+
+<div id="nerdStatsView" onclick="closeNerdStats(event)">
+    <div class="nerd-stats-container" onclick="event.stopPropagation()">
+        <div class="nerd-stats-header">
+            <h2 class="nerd-stats-title">🤓 Nerd-Statistik (Ewige Daten)</h2>
+            <button class="nerd-stats-close-btn" onclick="closeNerdStats()">✕</button>
+        </div>
+        <div class="nerd-stats-body" id="nerdStatsContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+            <!-- Dynamische Inhalte -->
+        </div>
+    </div>
+</div>
+
+<input type="file" id="csvIn" style="display:none" onchange="loadCSV(event)" accept=".csv,text/csv,text/plain">
+
+<script>
+    // ==========================================
+    // ZENTRALE VERSIONSEINSTELLUNG
+    // ==========================================
+    const APP_VERSION = "0.995";
+
+    function applyVersionToUI() {
+        document.title = `Würfelboard v${APP_VERSION} Stable`;
+        document.querySelectorAll('.app-version-text').forEach(el => {
+            el.innerText = APP_VERSION;
+        });
+    }
+
+    applyVersionToUI();
+
+    // AUTOMATISCHER GITHUB-VERSIONSABGLEICH
+    async function checkForUpdates() {
+        const githubVersionUrl = 'https://raw.githubusercontent.com/Rattenmufti/wuerfelboard/main/version.json';
+        try {
+            const response = await fetch(githubVersionUrl, { cache: "no-store" });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (data.version && data.version !== APP_VERSION) {
+                openConfirm(
+                    "Update verfügbar! 🚀",
+                    `Eine neue Version (${data.version}) ist verfügbar.\n\nMöchtest du die Seite jetzt neu laden, um die neueste Version zu nutzen?`,
+                    () => {
+                        location.reload(true);
+                    }
+                );
+            }
+        } catch (err) {
+            console.log("Versionsabgleich fehlgeschlagen oder offline:", err);
+        }
+    }
+
+    function checkChangelog() {
+        const hideVersion = localStorage.getItem('10k_hide_changelog');
+        if (hideVersion !== APP_VERSION) {
+            document.getElementById('changelogModal').style.display = 'flex';
+        }
+    }
+
+    function closeChangelogModal() {
+        const isChecked = document.getElementById('chkHideChangelog').checked;
+        if (isChecked) {
+            localStorage.setItem('10k_hide_changelog', APP_VERSION);
+        } else {
+            localStorage.removeItem('10k_hide_changelog');
+        }
+        document.getElementById('changelogModal').style.display = 'none';
+    }
+
+    function openAlert(title, text) {
+        document.getElementById('customModalTitle').innerText = title;
+        document.getElementById('customModalText').innerText = text;
+        const btnArea = document.getElementById('customModalButtons');
+        btnArea.innerHTML = '';
+        
+        const btn = document.createElement('button');
+        btn.className = 'modal-btn modal-btn-ok';
+        btn.innerText = 'OK';
+        btn.onclick = () => { document.getElementById('customModal').style.display = 'none'; };
+        
+        btnArea.appendChild(btn);
+        document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function openConfirm(title, text, onYes, onNo = null) {
+        document.getElementById('customModalTitle').innerText = title;
+        document.getElementById('customModalText').innerText = text;
+        const btnArea = document.getElementById('customModalButtons');
+        btnArea.innerHTML = '';
+        
+        const btnYes = document.createElement('button');
+        btnYes.className = 'modal-btn modal-btn-yes';
+        btnYes.innerText = 'Ja';
+        btnYes.onclick = () => { document.getElementById('customModal').style.display = 'none'; onYes(); };
+        
+        const btnNo = document.createElement('button');
+        btnNo.className = 'modal-btn modal-btn-no';
+        btnNo.innerText = 'Abbrechen';
+        btnNo.onclick = () => { document.getElementById('customModal').style.display = 'none'; if(onNo) onNo(); };
+        
+        btnArea.appendChild(btnYes);
+        btnArea.appendChild(btnNo);
+        document.getElementById('customModal').style.display = 'flex';
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                openAlert('Vollbild', `Fehler beim Aktivieren des Vollbildmodus: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    const MAX_P = 8;
+    let isArcView = false, arcScores = [], arcNames = [], isQuickPress = false, isLocked = false;
+    let focus = { r: 0, pI: 0, apIdx: 0 }; 
+    let currentPickerPlayerIdx = null; 
+    let undoHistory = [];
+    let autoPageReturnTimer = null;
+    let autoEndTimer = null;
+    let pendingEndGame = false;
+    let matchEndChartInstances = [];
+    // Eindeutige ID für das aktuell laufende Spiel
+let currentGameId = getSafe('10k_currentGameId', null);
+
+if (!currentGameId) {
+    currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
+}
+
+
+    // ZEIT- UND INAKTIVITÄTS-MANAGEMENT
+    let gameActive = getSafe('10k_gameActive', false);
+    let accumulatedTimeMs = getSafe('10k_accumulatedTimeMs', 0);
+    let currentTurnStartTime = getSafe('10k_currentTurnStartTime', null);
+    let inactivityTimer = null;
+    let isPaused = false;
+    
+    let playedUnder1000 = Array(MAX_P).fill(false);
+    let playedWinnerSound = Array(MAX_P).fill(false);
+
+    const AVAILABLE_EMOJIS = [
+        "🐎", "🦄", "🏎️", "🏍️", "🚀", "🛸", "🏃", "🏃‍♀️", "REX", "🐖", 
+        "🐐", "🐈", "🐕", "🦈", "🦼", "🪠", "🍞", "🍕", "🍺", "💩", "👑"
+    ];
+    
+    const DEFAULT_RIGHT_FACING = ["🐎", "🦄", "🏎️", "🏍️", "🏃", "🏃‍♀️", "REX", "🐖", "🐐", "🐈", "🐕", "🦈", "🦼", "💩"];
+
+    function updatePadDots() {
+        const vp = document.getElementById('padViewport');
+        if (!vp) return;
+        const pageIdx = Math.round(vp.scrollLeft / vp.clientWidth);
+        document.getElementById('dot1').classList.toggle('active', pageIdx === 0);
+        document.getElementById('dot2').classList.toggle('active', pageIdx === 1);
+        document.getElementById('dot3').classList.toggle('active', pageIdx === 2);
+    }
+
+    const audioCache = {};
+
+function playCustomAudio(filename) {
+        try {
+            // Ordnerpfad voranstellen:
+            const path = 'audio/' + filename;
+
+            // Überall 'path' statt 'filename' verwenden!
+            if (!audioCache[path]) {
+                audioCache[path] = new Audio(path);
+            }
+            const audio = audioCache[path];
+            audio.currentTime = 0;
+            audio.play().catch(e => playOscillatorFallback());
+        } catch(e) {
+            playOscillatorFallback();
+        }
+    }
+
+// Array mit den echten Pad-Werten (350 bis 3700)
+const VALID_PAD_VALUES = [];
+for (let val = 350; val <= 3700; val += 50) {
+    VALID_PAD_VALUES.push(val);
+}
+
+// NEU: Zähler & zufälliges Ziel (zwischen 4 und 8) VOR der Funktion anlegen
+let zeroCounter = 0;
+let nextExplosionTarget = Math.floor(Math.random() * 5) + 4;
+
+function triggerNumberPop(value) {
+    const oldOverlay = document.getElementById('numberPopOverlay');
+    if (oldOverlay) oldOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'numberPopOverlay';
+    overlay.className = 'number-pop-overlay';
+
+    // NEU: Steuerung über den Zähler statt reine Prozent-Chance
+    let triggerExplosion = false;
+    if (value === 0 || value === '0') {
+        zeroCounter++;
+        if (zeroCounter >= nextExplosionTarget) {
+            triggerExplosion = true;
+            zeroCounter = 0; // Zähler zurücksetzen
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 2; // Neues Ziel zwischen 2 und 6 würfeln
+        }
+    }
+
+    // SPEZIALFALL: Ronny-Null mit Explosion
+    if ((value === 0 || value === '0') && triggerExplosion) {
+        const container = document.createElement('div');
+        container.className = 'shatter-container';
+
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        
+        // Zufällige gültige Zahl wählen
+        const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
+        text.innerText = fakeNumber;
+        container.appendChild(text);
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+
+        // 1. Nach Einfliegen (0.6s) fängt das heftige Rütteln an
+        setTimeout(() => {
+            text.classList.add('shake-before-pop');
+        }, 600);
+
+        // 2. Auf dem Höhepunkt (1.8s): Zahl explodiert in Partikel & 0 knallt rein
+        setTimeout(() => {
+            text.remove(); // Schein-Zahl löschen
+
+            // Schockwelle erzeugen
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            container.appendChild(wave);
+
+            // Trümmerteile wegschleudern
+            const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
+            for (let i = 0; i < 18; i++) {
+                const shard = document.createElement('div');
+                shard.className = 'shard';
+                shard.innerText = shardChars[i % shardChars.length];
+                
+                const angle = (i / 18) * Math.PI * 2;
+                const dist = 300 + Math.random() * 250; // Flugweite
+                const tx = Math.cos(angle) * dist + 'px';
+                const ty = Math.sin(angle) * dist + 'px';
+                const rot = (Math.random() * 720 - 360) + 'deg';
+
+                shard.style.setProperty('--tx', tx);
+                shard.style.setProperty('--ty', ty);
+                shard.style.setProperty('--rot', rot);
+
+                container.appendChild(shard);
+            }
+
+            // Die echte Ronny-Null knallt heraus
+            const zeroText = document.createElement('div');
+            zeroText.className = 'number-pop-text zero-boom';
+            zeroText.innerText = '0';
+            container.appendChild(zeroText);
+
+        }, 1800);
+
+        // Längeres Cleanup für den langen Explosions-Ablauf
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 4800);
+
+    } else {
+        // Normaler Ablauf für ALLE anderen Zahlen UND für die normalen 0en
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        text.innerText = value;
+        overlay.appendChild(text);
+        document.body.appendChild(overlay);
+
+        // Standard-Cleanup zeitnah ausführen (z.B. 1,5 Sekunden)
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 3000);
+    }
+}
+
+
+    
+    function playOscillatorFallback() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        } catch(e) {}
+    }
+
+    function getSafe(k, f) { try { let d = localStorage.getItem(k); return d ? JSON.parse(d) : f; } catch(e) { return f; } }
+
+    let pNames = getSafe('10k_names', ["Spieler 1", "Spieler 2", "", "", "", "", "", ""]);
+    let scores = getSafe('10k_scores', [Array(MAX_P).fill("")]);
+    let stats = Array(MAX_P).fill(0); 
+    let archive = getSafe('10k_archive', []);
+    let startIdx = getSafe('10k_startIdx', 0);
+    let theme = getSafe('10k_theme', 'dark');
+    let showRace = getSafe('10k_showRace', false);
+    
+    let pEmojis = getSafe('10k_emojis', Array(MAX_P).fill("🐎"));
+    
+    let defaultView = window.innerWidth < 1024 ? 'mobile' : 'desktop';
+    let viewMode = getSafe('10k_viewMode', defaultView);
+
+    if(theme === 'light') document.body.classList.add('light-mode');
+    if(viewMode === 'mobile') document.body.classList.add('mobile-mode');
+    updateToggleButtonText();
+
+    function startTimerIfNeeded() {
+        if (!gameActive) {
+            gameActive = true;
+            accumulatedTimeMs = 0;
+            currentTurnStartTime = Date.now();
+            localStorage.setItem('10k_gameActive', true);
+            localStorage.setItem('10k_accumulatedTimeMs', 0);
+            localStorage.setItem('10k_currentTurnStartTime', currentTurnStartTime);
+        } else if (isPaused) {
+            resumeFromPause();
+        }
+        resetInactivityTimer();
+    }
+
+    function stopTimerAndGetDuration() {
+        let total = accumulatedTimeMs;
+        if (gameActive && currentTurnStartTime && !isPaused) {
+            total += (Date.now() - currentTurnStartTime);
+        }
+        gameActive = false;
+        currentTurnStartTime = null;
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        localStorage.setItem('10k_gameActive', false);
+        localStorage.setItem('10k_accumulatedTimeMs', total);
+        localStorage.removeItem('10k_currentTurnStartTime');
+        
+        return total;
+    }
+
+    function resetInactivityTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (gameActive && !isPaused) {
+            inactivityTimer = setTimeout(() => {
+                triggerPause();
+            }, 120000); // 2 Minuten Inaktivität
+        }
+    }
+
+    function triggerPause() {
+        if (!gameActive || isPaused) return;
+        isPaused = true;
+        if (currentTurnStartTime) {
+            accumulatedTimeMs += (Date.now() - currentTurnStartTime);
+            currentTurnStartTime = null;
+            localStorage.setItem('10k_accumulatedTimeMs', accumulatedTimeMs);
+            localStorage.removeItem('10k_currentTurnStartTime');
+        }
+        document.getElementById('pauseOverlay').classList.add('active');
+    }
+
+    function resumeFromPause() {
+        if (!isPaused) return;
+        isPaused = false;
+        if (gameActive) {
+            currentTurnStartTime = Date.now();
+            localStorage.setItem('10k_currentTurnStartTime', currentTurnStartTime);
+        }
+        document.getElementById('pauseOverlay').classList.remove('active');
+        resetInactivityTimer();
+    }
+
+    function resetGameTimer() {
+        accumulatedTimeMs = 0;
+        currentTurnStartTime = null;
+        gameActive = false;
+        localStorage.removeItem('10k_accumulatedTimeMs');
+        localStorage.removeItem('10k_currentTurnStartTime');
+        localStorage.setItem('10k_gameActive', JSON.stringify(false));
+        generateNewGameId(); // <-- HIER EINFÜGEN
+    }
+
+    // Die neue Hilfsfunktion direkt darunter:
+    function generateNewGameId() {
+        currentGameId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('10k_currentGameId', JSON.stringify(currentGameId));
+    }
+
+
+    function sanitizeOldNames(text) {
+        if (!text) return "";
+        return text.replace(/\bAggi\b/gi, pNames[0] || "Spieler 1")
+                   .replace(/\bDavid\b/gi, pNames[1] || "Spieler 2");
+    }
+
+
+    function fixAndRecalculateArchive() {
+        let arch = archive || getSafe('10k_archive', []);
+        let names = pNames || getSafe('10k_names', ["Spieler 1", "Spieler 2"]);
+
+        if (!arch || arch.length === 0) {
+            openAlert("Historie", "Keine Historie vorhanden.");
+            return;
+        }
+
+        let correctedCount = 0;
+
+        arch.forEach(game => {
+            let gameScores = game.s || [];
+            let gameNames = game.names || names;
+            let numPlayers = MAX_P;
+
+            let totals = new Array(numPlayers).fill(0);
+
+            gameScores.forEach(row => {
+                for (let i = 0; i < numPlayers; i++) {
+                    let val = parseInt(row[i], 10);
+                    if (!isNaN(val)) {
+                        totals[i] += val;
+                    }
+                }
+            });
+
+            let winnersIdx = [];
+            totals.forEach((tot, idx) => {
+                if (tot >= 10000) {
+                    winnersIdx.push(idx);
+                }
+            });
+
+            let correctWinnerStr = "";
+            if (winnersIdx.length > 1) {
+                let winnerNames = winnersIdx
+                    .map(i => gameNames[i] ? sanitizeOldNames(gameNames[i]).trim() : "")
+                    .filter(n => n !== "");
+                correctWinnerStr = "Unentschieden: " + winnerNames.join(", ");
+            } else if (winnersIdx.length === 1) {
+                let wName = gameNames[winnersIdx[0]] ? sanitizeOldNames(gameNames[winnersIdx[0]]).trim() : "";
+                correctWinnerStr = "Sieger: " + wName;
+            } else {
+                correctWinnerStr = game.w || "-";
+            }
+
+            if (game.w !== correctWinnerStr) {
+                game.w = correctWinnerStr;
+                correctedCount++;
+            }
+        });
+
+        archive = arch;
+        save();
+        recalculateKingOfTheHill();
+        renderArchiveList();
+        render();
+
+        openAlert("Historie korrigiert", `Scan abgeschlossen!\nEs wurden ${correctedCount} fehlerhafte Historien-Einträge korrigiert.`);
+    }
+
+    function recalculateKingOfTheHill() {
+        stats = Array(MAX_P).fill(0);
+        
+        archive.forEach(g => {
+            let winText = g.w ? g.w.trim().toLowerCase() : "";
+            if (winText === "") return;
+
+            if (winText.startsWith("unentschieden:")) {
+                let winnersList = g.w.replace(/Unentschieden:\s*/i, "").split(",");
+                winnersList.forEach(wName => {
+                    let sName = wName.trim().toLowerCase();
+                    let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
+                    if (pIdx !== -1) { stats[pIdx]++; }
+                });
+                return;
+            }
+            
+            if (winText.startsWith("sieger: ")) {
+                let sName = g.w.replace(/Sieger:\s*/i, "").trim().toLowerCase();
+                let pIdx = pNames.findIndex(name => name && name.trim().toLowerCase() === sName);
+                if (pIdx !== -1) { stats[pIdx]++; return; }
+            }
+
+            if (winText.includes("aggi") || winText.includes("spieler 1")) {
+                stats[0]++;
+                return;
+            }
+            if (winText.includes("david") || winText.includes("spieler 2")) {
+                stats[1]++;
+                return;
+            }
+
+            if (g.s && Array.isArray(g.s)) {
+                let slotTotals = Array(MAX_P).fill(0);
+                g.s.forEach(row => {
+                    for (let i = 0; i < MAX_P; i++) {
+                        let val = parseInt(row[i]);
+                        if (!isNaN(val)) slotTotals[i] += val;
+                    }
+                });
+
+                for (let i = 0; i < MAX_P; i++) {
+                    if (slotTotals[i] >= 10000) {
+                        stats[i]++;
+                    }
+                }
+            }
+        });
+    }
+
+    function save() { if(!isArcView) { localStorage.setItem('10k_names', JSON.stringify(pNames)); localStorage.setItem('10k_scores', JSON.stringify(scores)); localStorage.setItem('10k_archive', JSON.stringify(archive)); localStorage.setItem('10k_startIdx', startIdx); localStorage.setItem('10k_theme', theme); localStorage.setItem('10k_viewMode', viewMode); localStorage.setItem('10k_showRace', showRace); localStorage.setItem('10k_emojis', JSON.stringify(pEmojis)); } }
+    
+    function toggleMobile() { 
+        viewMode = (viewMode === 'desktop' ? 'mobile' : 'desktop'); 
+        document.body.classList.toggle('mobile-mode'); 
+        updateToggleButtonText();
+        save(); 
+        render(); 
+    }
+
+    function toggleRaceMode() {
+        showRace = !showRace;
+        save();
+        applyRaceVisibility();
+    }
+
+    function applyRaceVisibility() {
+        const raceUI = document.getElementById('raceTrackUI');
+        const anaUI = document.getElementById('analysisUI');
+        const btn = document.getElementById('btnRaceToggle');
+        
+        if (showRace) {
+            if(anaUI) anaUI.classList.add('slide-hide');
+            if(raceUI) {
+                raceUI.classList.add('slide-show');
+                setupRaceTrackStructure();
+                renderRaceTrack();
+            }
+            if(btn) {
+                btn.style.background = '#2ecc71';
+                btn.innerText = '📊 STATISTIK';
+            }
+        } else {
+            if(raceUI) raceUI.classList.remove('slide-show');
+            if(anaUI) anaUI.classList.remove('slide-hide');
+            document.getElementById('raceTrackStickyCopy').style.display = 'none';
+            if(btn) {
+                btn.style.background = '#8e44ad';
+                btn.innerText = '🐎 RENNEN';
+            }
+        }
+    }
+
+    function updateToggleButtonText() {
+        const btn = document.getElementById('btnViewToggle');
+        if(btn) btn.innerText = viewMode === 'mobile' ? '📱 DESKTOP' : '📱 MOBIL';
+    }
+
+    function toggleTheme() { theme = (theme === 'dark' ? 'light' : 'dark'); document.body.classList.toggle('light-mode'); save(); }
+
+    function scrollCheck(el) {
+        if(viewMode !== 'mobile') { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+        const pad = document.getElementById('padUI');
+        const padTop = pad.getBoundingClientRect().top;
+        const elRect = el.getBoundingClientRect();
+        
+        if (elRect.bottom > padTop - 110) { 
+            window.scrollBy({ top: elRect.bottom - padTop + 240, behavior: 'smooth' }); 
+        } else if (elRect.top < 100) { 
+            window.scrollBy({ top: elRect.top - 120, behavior: 'smooth' }); 
+        }
+
+        const tableArea = document.querySelector('.table-area');
+        if (tableArea) {
+            const stickyOffset = 78;
+            const targetBottom = el.offsetTop + el.offsetHeight + stickyOffset;
+            
+            if (targetBottom > tableArea.scrollTop + tableArea.clientHeight) {
+                tableArea.scrollTo({
+                    top: targetBottom - tableArea.clientHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }
+
+function triggerNumberPop(value) {
+    const oldOverlay = document.getElementById('numberPopOverlay');
+    if (oldOverlay) oldOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'numberPopOverlay';
+    overlay.className = 'number-pop-overlay';
+
+    // Steuerung über den Zähler statt reine Prozent-Chance
+    let triggerExplosion = false;
+    if (value === 0 || value === '0') {
+        zeroCounter++;
+        if (zeroCounter >= nextExplosionTarget) {
+            triggerExplosion = true;
+            zeroCounter = 0; // Zähler zurücksetzen
+            nextExplosionTarget = Math.floor(Math.random() * 5) + 2; // Neues Ziel zwischen 2 und 6
+        }
+    }
+
+    // SPEZIALFALL: Ronny-Null mit Explosion
+    if ((value === 0 || value === '0') && triggerExplosion) {
+        const container = document.createElement('div');
+        container.className = 'shatter-container';
+
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        
+        // Zufällige gültige Schein-Zahl wählen
+        const fakeNumber = VALID_PAD_VALUES[Math.floor(Math.random() * VALID_PAD_VALUES.length)];
+        text.innerText = fakeNumber;
+        container.appendChild(text);
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+
+        // OPTIONAL: Wenn du willst, dass nach 0,5s die gefakte Audio abgespielt wird (Täuschung!):
+        setTimeout(() => {
+            playCustomAudio(`${fakeNumber}.mp3`);
+        }, 500);
+
+        // 1. Nach Einfliegen (1.0s) fängt das heftige Rütteln an
+        setTimeout(() => {
+            text.classList.add('shake-before-pop');
+        }, 1000);
+
+        // 2. Auf dem Höhepunkt (2.8s): Schein-Zahl explodiert in Partikel & 0 knallt rein
+        setTimeout(() => {
+            text.remove();
+
+            const wave = document.createElement('div');
+            wave.className = 'shockwave';
+            container.appendChild(wave);
+
+            const shardChars = [fakeNumber.toString().charAt(0), '≠', '!', '#', 'x', '0', '?', '%'];
+            for (let i = 0; i < 18; i++) {
+                const shard = document.createElement('div');
+                shard.className = 'shard';
+                shard.innerText = shardChars[i % shardChars.length];
+                
+                const angle = (i / 18) * Math.PI * 2;
+                const dist = 300 + Math.random() * 250;
+                const tx = Math.cos(angle) * dist + 'px';
+                const ty = Math.sin(angle) * dist + 'px';
+                const rot = (Math.random() * 720 - 360) + 'deg';
+
+                shard.style.setProperty('--tx', tx);
+                shard.style.setProperty('--ty', ty);
+                shard.style.setProperty('--rot', rot);
+
+                container.appendChild(shard);
+            }
+
+            const zeroText = document.createElement('div');
+            zeroText.className = 'number-pop-text zero-boom';
+            zeroText.innerText = '0';
+            container.appendChild(zeroText);
+
+        }, 2800);
+
+        // Cleanup nach 6,5 Sekunden
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 6500);
+
+    } else {
+        // Normaler Ablauf für ALLE anderen Zahlen UND für die normalen 0en
+        const text = document.createElement('div');
+        text.className = 'number-pop-text';
+        text.innerText = value;
+        overlay.appendChild(text);
+        document.body.appendChild(overlay);
+
+        // ==========================================
+        // NEU: Zahlen-Audio genau 0,5s (500ms) nach Pad-Druck
+        // ==========================================
+        if (value !== 0 && value !== '0') {
+            setTimeout(() => {
+                playCustomAudio(`${value}.mp3`);
+            }, 500);
+        }
+
+        // Cleanup nach 3,0 Sekunden
+        setTimeout(() => {
+            if (overlay && overlay.parentNode) overlay.remove();
+        }, 3000);
+    }
+}
+
+
+
+// Sound einmalig am Anfang deines Scripts laden (falls noch nicht geschehen)
+const backSound = new Audio('zurueck.mp3');
+
+function undoMove() {
+    if (isArcView || isLocked || undoHistory.length === 0) return;
+
+    // Sound sofort abspielen
+    backSound.currentTime = 0;
+    backSound.play().catch(e => console.log("Audio Error:", e));
+
+    if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+    pendingEndGame = false;
+    isLocked = true;
+    const buttons = document.querySelectorAll('.pad-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    const lastState = undoHistory.pop();
+    scores = JSON.parse(JSON.stringify(lastState.scores));
+    focus = { ...lastState.focus };
+    
+    save();
+    render();
+
+    setTimeout(() => {
+        const el = document.getElementById(`input-${focus.r}-${focus.pI}`);
+        if (el) {
+            el.focus();
+            scrollCheck(el);
+        }
+        isLocked = false;
+        buttons.forEach(b => b.disabled = false);
+    }, 500);
+}
+
+    function jumpToNext() {
+        const sorted = getSortedActive();
+        if (sorted.length === 0) return;
+        let nAp = focus.apIdx + 1, nR = focus.r;
+        if(nAp >= sorted.length) { nAp = 0; nR++; if(nR >= scores.length) scores.push(Array(MAX_P).fill("")); }
+        focus = { r: nR, pI: sorted[nAp].i, apIdx: nAp };
+        save(); render(); 
+        setTimeout(() => {
+            const el = document.getElementById(`input-${nR}-${sorted[nAp].i}`);
+            if(el) {
+                if(isQuickPress) { el.setAttribute('readonly', 'true'); el.focus(); setTimeout(() => el.removeAttribute('readonly'), 50); } 
+                else { el.focus(); }
+                scrollCheck(el);
+            }
+            isQuickPress = false; 
+        }, 30);
+    }
+
+    function updateName(idx, val) {
+        pNames[idx] = val;
+        recalculateKingOfTheHill();
+        save();
+        updateUI(getSortedActive());
+        const hCells = document.getElementById('hRow').querySelectorAll('th');
+        const sorted = getSortedActive();
+        sorted.forEach((p, i) => {
+            if(hCells[i+1]) hCells[i+1].innerText = getHeaderNameWithAvg(p);
+        });
+        setupRaceTrackStructure();
+        renderRaceTrack();
+    }
+
+    function getHeaderNameWithAvg(p) {
+        const activeScores = isArcView ? arcScores : scores;
+        let sum = 0, count = 0;
+        activeScores.forEach(r => {
+            const v = parseInt(r[p.i]);
+            if(!isNaN(v)) { sum += v; count++; }
+        });
+        let avg = count > 0 ? Math.round(sum / count) : 0;
+        return `${p.n} (Ø:${avg})`;
+    }
+
+    function changeStarter(i) {
+        if (isArcView) return;
+        startIdx = i;
+        const sorted = getSortedActive();
+        const newApIdx = sorted.findIndex(p => p.i === i);
+        focus = {
+            r: 0,
+            pI: i,
+            apIdx: (newApIdx === -1 ? 0 : newApIdx)
+        };
+        save();
+        render();
+    }
+
+    function openEmojiPicker(playerIdx, playerName) {
+        if (isArcView) return;
+        currentPickerPlayerIdx = playerIdx;
+        document.getElementById('emojiPickerTitle').innerText = `${playerName}`;
+        
+        const grid = document.getElementById('emojiPickerGrid');
+        grid.innerHTML = '';
+        
+        AVAILABLE_EMOJIS.forEach(emo => {
+            const btn = document.createElement('button');
+            btn.className = 'emoji-select-btn';
+            btn.innerText = emo;
+            btn.onclick = () => selectEmojiForPlayer(emo);
+            grid.appendChild(btn);
+        });
+        
+        document.getElementById('emojiPicker').style.display = 'flex';
+    }
+
+    function selectEmojiForPlayer(emo) {
+        if (currentPickerPlayerIdx !== null) {
+            pEmojis[currentPickerPlayerIdx] = emo;
+            save();
+            document.getElementById('emojiPicker').style.display = 'none';
+            document.getElementById('raceTrackUI').removeAttribute('data-layout-id');
+            setupRaceTrackStructure();
+            renderRaceTrack();
+        }
+    }
+
+    function closeEmojiPicker(e) {
+        document.getElementById('emojiPicker').style.display = 'none';
+    }
+
+    function render() {
+        recalculateKingOfTheHill();
+        const activeScores = isArcView ? arcScores : scores;
+        const activeNames = isArcView ? arcNames : pNames;
+        const sorted = getSortedActive();
+        
+        if (sorted.length <= 4) {
+            document.body.classList.add('few-players');
+            document.body.classList.remove('many-players');
+        } else {
+            document.body.classList.add('many-players');
+            document.body.classList.remove('few-players');
+        }
+        
+        const nGrid = document.getElementById('namesGrid'); nGrid.innerHTML = '';
+        activeNames.forEach((n, i) => {
+            if (isArcView && (!n || n.trim() === "")) return; 
+            const div = document.createElement('div'); div.className = 'name-slot';
+            div.innerHTML = `<input value="${n}" ${isArcView?'readonly':''} oninput="updateName(${i}, this.value)" placeholder="...">
+                <button type="button" onclick="changeStarter(${i})" ${isArcView?'disabled':''} class="btn-starter ${startIdx===i?'active':''}">${startIdx===i?'STARTER':'WAHL'}</button>`;
+            nGrid.appendChild(div);
+        });
+        
+        document.getElementById('hRow').innerHTML = '<th style="width: 35px;">RD</th>' + sorted.map(p => `<th>${getHeaderNameWithAvg(p)}</th>`).join('');
+        const body = document.getElementById('gBody'); body.innerHTML = '';
+        activeScores.forEach((row, rIdx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${rIdx+1}</td>`;
+            sorted.forEach((p, apIdx) => {
+                const td = document.createElement('td');
+                const inp = document.createElement('input');
+                inp.className = `score-input ${(!isArcView && focus.r===rIdx && focus.pI===p.i)?'system-focus':''}`;
+                inp.value = activeScores[rIdx][p.i] || ""; inp.type = "number"; inp.id = `input-${rIdx}-${p.i}`;
+                if (isArcView) inp.setAttribute('readonly', 'true');
+                if(viewMode === 'mobile') inp.setAttribute('inputmode', 'none'); 
+                inp.onfocus = () => { if(!isArcView) { focus = { r: rIdx, pI: p.i, apIdx }; scrollCheck(inp); } };
+                inp.onkeydown = (e) => { if(e.key === "Enter" || e.key === "Tab") { e.preventDefault(); isQuickPress = false; jumpToNext(); } };
+                inp.oninput = (e) => { 
+                    if(!isArcView) { 
+                        startTimerIfNeeded();
+                        if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+                        pendingEndGame = false;
+                        scores[rIdx][p.i] = e.target.value; 
+                        save(); 
+                        updateUI(sorted); 
+                    } 
+                };
+                td.appendChild(inp); tr.appendChild(td);
+            });
+            body.appendChild(tr);
+        });
+        
+        setupRaceTrackStructure();
+        updateUI(sorted);
+        applyRaceVisibility();
+        checkGameAutoEnd(sorted);
+    }
+
+    function setupRaceTrackStructure() {
+        const track = document.getElementById('raceTrackUI');
+        const sorted = getSortedActive();
+        
+        const expectedLayout = sorted.map(p => `${p.i}:${pEmojis[p.i]||'🐎'}`).join('-');
+        
+        if (track.getAttribute('data-layout-id') === expectedLayout) return; 
+
+        track.innerHTML = '';
+        track.setAttribute('data-layout-id', expectedLayout);
+
+        sorted.forEach(p => {
+            const laneEmoji = pEmojis[p.i] || "🐎";
+            
+            const mirrorClass = DEFAULT_RIGHT_FACING.includes(laneEmoji) ? "mirror" : "";
+
+            const lane = document.createElement('div');
+            lane.className = 'race-lane';
+            lane.id = `race-lane-${p.i}`;
+            lane.onclick = () => openEmojiPicker(p.i, p.n);
+            
+            lane.innerHTML = `
+                <div class="race-name-field">${p.n} ⚙️</div>
+                <div class="race-track-path">
+                    <div class="race-finish-line">🏁</div>
+                    <div class="race-horse-wrapper" id="horse-wrapper-${p.i}" style="left: 0%;">
+                        <span class="race-horse-text" id="horse-text-${p.i}">0</span>
+                        <span class="race-horse-emoji ${mirrorClass}" id="horse-emoji-${p.i}">${laneEmoji}</span>
+                    </div>
+                </div>
+            `;
+            track.appendChild(lane);
+        });
+
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        stickyCopy.innerHTML = track.innerHTML;
+        
+        sorted.forEach(p => {
+            const copyLane = stickyCopy.querySelector(`#race-lane-${p.i}`);
+            if (copyLane) {
+                copyLane.onclick = () => openEmojiPicker(p.i, p.n);
+            }
+        });
+    }
+
+    function renderRaceTrack() {
+        if (!showRace) return;
+        const sorted = getSortedActive();
+        const activeScores = isArcView ? arcScores : scores;
+
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) total += v;
+            });
+
+            let pct = Math.min(100, (total / 10000) * 100);
+
+            const origPath = document.querySelector(`#raceTrackUI #horse-wrapper-${p.i}`)?.closest('.race-track-path');
+            const wrapperOrig = document.querySelector(`#raceTrackUI #horse-wrapper-${p.i}`);
+            const textOrig = document.querySelector(`#raceTrackUI #horse-text-${p.i}`);
+
+            if (origPath && wrapperOrig && textOrig) {
+                const pathWidthOrig = origPath.getBoundingClientRect().width;
+                const wrapperWidthOrig = wrapperOrig.getBoundingClientRect().width || 65;
+                const availableWidthOrig = pathWidthOrig - wrapperWidthOrig;
+                const calculatedLeftOrig = (pct / 100) * availableWidthOrig;
+
+                wrapperOrig.style.right = 'auto';
+                wrapperOrig.style.left = `${calculatedLeftOrig}px`;
+                textOrig.innerText = `${total}`;
+            }
+
+            const copyPath = document.querySelector(`#raceTrackStickyCopy #horse-wrapper-${p.i}`)?.closest('.race-track-path');
+            const wrapperCopy = document.querySelector(`#raceTrackStickyCopy #horse-wrapper-${p.i}`);
+            const textCopy = document.querySelector(`#raceTrackStickyCopy #horse-text-${p.i}`);
+
+            if (copyPath && wrapperCopy && textCopy) {
+                const pathWidthCopy = copyPath.getBoundingClientRect().width;
+                const wrapperWidthCopy = wrapperCopy.getBoundingClientRect().width || 65;
+                const availableWidthCopy = copyPath.getBoundingClientRect().width - (wrapperCopy.getBoundingClientRect().width || 65);
+                const calculatedLeftCopy = (pct / 100) * availableWidthCopy;
+
+                wrapperCopy.style.right = 'auto';
+                wrapperCopy.style.left = `${calculatedLeftCopy}px`;
+                textCopy.innerText = `${total}`;
+            }
+        });
+    }
+
+    function updateUI(sorted) {
+        const activeScores = isArcView ? arcScores : scores;
+        let dist = { ronny:{}, small:{}, med:{}, big:{}, elite:{}, meister:{} };
+        let pendingWinners = [];
+
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) total += v;
+            });
+            if (total >= 10000) {
+                pendingWinners.push(p.i);
+            }
+        });
+
+        const f = document.getElementById('tRow'); f.innerHTML = '<td>Σ</td>';
+        sorted.forEach(p => {
+            let total = 0;
+            activeScores.forEach(r => {
+                const v = parseInt(r[p.i]);
+                if(!isNaN(v)) {
+                    total += v;
+                    let cat = v===0?'ronny':v<=450?'small':v<=700?'med':v<=950?'big':v<=1500?'elite':'meister';
+                    if(!dist[cat][p.i]) dist[cat][p.i] = 0;
+                    dist[cat][p.i]++;
+                }
+            });
+            let rest = 10000 - total;
+            
+            if (!isArcView) {
+                if (rest < 1001 && rest > 0) {
+                    if (!playedUnder1000[p.i]) {
+                        playCustomAudio('unter-1000.mp3');
+                        playedUnder1000[p.i] = true;
+                    }
+                } else if (rest >= 1001) {
+                    playedUnder1000[p.i] = false;
+                }
+
+                if (rest <= 0) {
+                    if (!playedWinnerSound[p.i]) {
+                        playCustomAudio('sieger.mp3');
+                        playedWinnerSound[p.i] = true;
+                    }
+                } else {
+                    playedWinnerSound[p.i] = false;
+                }
+            }
+
+            let statusClass = "";
+            let displayText = rest;
+            if (rest <= 0) {
+                statusClass = "winner-blink";
+                displayText = `👑 ${rest} 👑`;
+            } else if (rest <= 1000) {
+                statusClass = "near-win";
+            }
+            f.innerHTML += `<td><div class="score-box ${statusClass}"><span class="score-mobile-name">${p.n}</span><span class="score-down">${displayText}</span><span class="score-up">${total}</span></div></td>`;
+        });
+
+        const displayNamesSource = isArcView ? arcNames : pNames;
+        document.getElementById('statsDisp').innerHTML = displayNamesSource.map((n,i)=>({n,i})).map(p => {
+            if (!p.n || p.n.trim() === "") {
+                return `<div class="stat-item" style="opacity: 0.2;"><span class="stat-name">-</span><span class="stat-wins">👑 0</span></div>`;
+            }
+            let isWinningNow = pendingWinners.includes(p.i) ? '<span class="pending-win">(+1)</span>' : '';
+            return `<div class="stat-item"><span class="stat-name">${p.n}</span><span class="stat-wins">👑 ${stats[p.i]||0}${isWinningNow}</span></div>`;
+        }).join('');
+
+        const cats = [['RONNYS (0)','ronny'],['350 bis 450','small'],['500 bis 700','med'],['750 bis 950','big'],['1000 bis 1450','elite'],['Über 1500','meister']];
+        document.getElementById('analysisUI').innerHTML = cats.map(c => {
+            const details = sorted.map(p => `<div class="ana-row" style="font-size:0.9rem; margin-top:3px; display:flex; justify-between;"><span>${p.n}:</span> <b style="margin-left:auto;">${dist[c[1]][p.i] || 0}</b></div>`).join('');
+            return `<div class="analysis-card"><div style="font-size:0.95rem; font-weight:bold; color:var(--accent); border-bottom: 1px solid var(--border); padding-bottom:3px; margin-bottom:5px;">${c[0]}</div>${details}</div>`;
+        }).join('');
+
+        renderRaceTrack();
+    }
+
+    function checkGameAutoEnd(sorted) {
+        if (isArcView || pendingEndGame) return;
+        if (!sorted || sorted.length === 0) return;
+
+        let lastPlayedRow = -1;
+        for (let r = scores.length - 1; r >= 0; r--) {
+            let rowHasValue = sorted.some(p => scores[r][p.i] !== undefined && scores[r][p.i] !== "");
+            if (rowHasValue) {
+                lastPlayedRow = r;
+                break;
+            }
+        }
+        if (lastPlayedRow === -1) return;
+
+        let roundComplete = sorted.every(p => scores[lastPlayedRow][p.i] !== undefined && scores[lastPlayedRow][p.i] !== "");
+        if (!roundComplete) return;
+
+        let playerTotals = sorted.map(p => {
+            let tot = 0;
+            for (let r = 0; r <= lastPlayedRow; r++) {
+                let v = parseInt(scores[r][p.i]);
+                if (!isNaN(v)) tot += v;
+            }
+            return { p, tot };
+        });
+
+        let targetReached = playerTotals.some(item => item.tot >= 10000);
+        if (!targetReached) return;
+
+        pendingEndGame = true;
+        autoEndTimer = setTimeout(() => {
+            triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow);
+        }, 5000);
+    }
+
+      function triggerMatchEndPopup(sorted, playerTotals, lastPlayedRow) {
+        const durationMs = stopTimerAndGetDuration();
+
+        let winners = playerTotals.filter(item => item.tot >= 10000);
+
+        let winText = "-";
+        if (winners.length > 1) {
+            winText = "Unentschieden: " + winners.map(w => w.p.n).join(", ");
+        } else if (winners.length === 1) {
+            winText = "Sieger: " + winners[0].p.n;
+        }
+
+        let statLines = playerTotals.map(item => {
+            return `${item.p.n}: ${item.tot} Pkt.`;
+        }).join('\n');
+
+        // Kategorien-Statistiken pro Spieler & Gesamtverteilung
+        const activeScores = isArcView ? arcScores : scores;
+        let playerStats = {};
+        let totalCounts = {
+            'Ronnys (0)': 0,
+            '350 - 450': 0,
+            '500 - 700': 0,
+            '750 - 950': 0,
+            '1000 - 1450': 0,
+            'Über 1500': 0
+        };
+
+        sorted.forEach(p => {
+            playerStats[p.i] = {
+                name: p.n,
+                counts: {
+                    'Ronnys (0)': 0,
+                    '350 - 450': 0,
+                    '500 - 700': 0,
+                    '750 - 950': 0,
+                    '1000 - 1450': 0,
+                    'Über 1500': 0
+                }
+            };
+
+            for (let r = 0; r <= lastPlayedRow; r++) {
+                let v = parseInt(activeScores[r][p.i]);
+                if (!isNaN(v)) {
+                    let catKey = '';
+                    if (v === 0) catKey = 'Ronnys (0)';
+                    else if (v <= 450) catKey = '350 - 450';
+                    else if (v <= 700) catKey = '500 - 700';
+                    else if (v <= 950) catKey = '750 - 950';
+                    else if (v <= 1500) catKey = '1000 - 1450';
+                    else catKey = 'Über 1500';
+
+                    if (catKey) {
+                        playerStats[p.i].counts[catKey]++;
+                        totalCounts[catKey]++;
+                    }
+                }
+            }
+        });
+
+        // ==========================================
+        // DUPLIKAT-SCHUTZ BEIM SPEICHERN (NUR 1X SPEICHERN)
+        // ==========================================
+        const alreadySaved = archive.some(item => item.id === currentGameId);
+
+        if (!alreadySaved) {
+            archive.unshift({ 
+                id: currentGameId,
+                d: new Date().toLocaleString(), 
+                w: winText, 
+                s: JSON.parse(JSON.stringify(scores)), 
+                names: JSON.parse(JSON.stringify(pNames)),
+                durationMs: durationMs
+            });
+            recalculateKingOfTheHill();
+            save();
+            render();
+        }
+
+        // Ab hier wird der Inhalt des Popups zusammengebaut:
+        const categoryColors = [
+            '#e74c3c', // Ronnys (0)
+            '#3498db', // 350 - 450
+            '#2ecc71', // 500 - 700
+            '#f1c40f', // 750 - 950
+            '#9b59b6', // 1000 - 1450
+            '#e67e22'  // Über 1500
+        ];
+
+        const catKeys = Object.keys(totalCounts);
+        let legendHTML = `<div class="global-chart-legend">` + catKeys.map((cat, idx) => `
+            <div class="legend-item">
+                <span class="legend-color-box" style="background: ${categoryColors[idx]};"></span>
+                <span>${cat}</span>
+            </div>
+        `).join('') + `</div>`;
+
+        // Grid mit Gesamtverteilungs-Chart als erstes Element
+        let totalChartCardHTML = `
+            <div class="player-chart-card total-chart-card">
+                <div class="chart-canvas-container">
+                    <canvas id="endChart_TOTAL"></canvas>
+                </div>
+            </div>
+        `;
+
+        let playerChartsHTML = sorted.map(p => `
+            <div class="player-chart-card">
+                <div class="chart-canvas-container">
+                    <canvas id="endChart_${p.i}"></canvas>
+                </div>
+            </div>
+        `).join('');
+
+        let msgHTML = `
+            <div style="font-weight: bold; font-size: 1.2rem; color: var(--accent); margin-bottom: 6px;">${winText}</div>
+            <div style="white-space: pre-line; margin-bottom: 10px; font-size:0.95rem;"><strong>--- Endergebnis ---</strong>\n${statLines}</div>
+            
+            <div class="modal-charts-wrapper">
+                <div style="font-weight:bold; color:var(--text); font-size:1.0rem; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">📊 Statistische Wurf-Verteilung</div>
+                ${legendHTML}
+                <div class="modal-charts-grid">
+                    ${totalChartCardHTML}
+                    ${playerChartsHTML}
+                </div>
+            </div>
+            
+            <div style="margin-top:10px; font-weight:bold;">Möchtest du eine neue Partie starten?</div>
+        `;
+
+        const modal = document.getElementById('customModal');
+        if (modal) modal.classList.add('game-over-modal');
+
+        const destroyCharts = () => {
+            matchEndChartInstances.forEach(inst => inst.destroy());
+            matchEndChartInstances = [];
+        };
+
+        openConfirm(
+            "Partie Beendet! 🏆",
+            "", 
+            () => {
+                if (modal) modal.classList.remove('game-over-modal');
+                destroyCharts();
+                // Neue Partie zurücksetzen
+                checkForUpdates();
+                if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+                pendingEndGame = false;
+                scores = [Array(MAX_P).fill("")]; 
+                undoHistory = [];
+                resetGameTimer();
+                playCustomAudio('neue-runde.mp3');
+                playedUnder1000 = Array(MAX_P).fill(false);
+                playedWinnerSound = Array(MAX_P).fill(false);
+                const sortedActive = getSortedActive();
+                if (sortedActive.length > 0) {
+                    focus = { r: 0, pI: sortedActive[0].i, apIdx: 0 };
+                }
+                recalculateKingOfTheHill();
+                render(); 
+                save();
+            },
+            () => {
+                if (modal) modal.classList.remove('game-over-modal');
+                destroyCharts();
+                pendingEndGame = false;
+                autoEndTimer = null;
+            }
+        );
+
+        const modalTextElem = document.getElementById('customModalText');
+        if (modalTextElem) modalTextElem.innerHTML = msgHTML;
+
+        // Render-Charts ohne eigene Legende für aufgeräumte Optik
+        setTimeout(() => {
+            destroyCharts();
+
+            const commonChartOptions = (titleText) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: titleText,
+                        color: getComputedStyle(document.body).getPropertyValue('--accent') || '#e67e22',
+                        font: { size: 11, weight: 'bold' },
+                        padding: { top: 0, bottom: 4 }
+                    }
+                }
+            });
+
+            // Hier machst du in deinem Code mit dem Erstellen der Chart-Instanzen weiter...
+
+
+            // 1. GESAMTVERTEILUNGS-DIAGRAMM
+            const ctxTotal = document.getElementById('endChart_TOTAL');
+            if (ctxTotal) {
+                const totalChartInst = new Chart(ctxTotal, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(totalCounts),
+                        datasets: [{
+                            data: Object.values(totalCounts),
+                            backgroundColor: categoryColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: commonChartOptions('🌐 GESAMTVERTEILUNG')
+                });
+                matchEndChartInstances.push(totalChartInst);
+            }
+
+            // 2. EINZELNE SPIELER-DIAGRAMME
+            sorted.forEach(p => {
+                const ctx = document.getElementById(`endChart_${p.i}`);
+                if (ctx) {
+                    const pData = playerStats[p.i];
+                    const chartInst = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(pData.counts),
+                            datasets: [{
+                                data: Object.values(pData.counts),
+                                backgroundColor: categoryColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: commonChartOptions(`👤 ${pData.name}`)
+                    });
+                    matchEndChartInstances.push(chartInst);
+                }
+            });
+        }, 50);
+    }
+
+    function getSortedActive() { 
+        const names = isArcView ? arcNames : pNames; 
+        const active = names.map((n, i) => ({n, i})).filter(p => p.n && p.n.trim() !== ""); 
+        if (active.length === 0) return [];
+        const sPos = active.findIndex(p => p.i === startIdx); 
+        return (sPos === -1) ? active : [...active.slice(sPos), ...active.slice(0, sPos)]; 
+    }
+    
+    async function saveCSV() {
+        const d = { pNames, scores, archive, startIdx, pEmojis };
+        const jsonString = JSON.stringify(d);
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        const fileName = `Würfel-Backup-${yy}.${mm}.${dd}-${hh}.${min}.csv`;
+        
+        try {
+            const blob = new Blob([jsonString], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            openAlert("Erfolg", "Das Backup wurde erfolgreich erstellt und der Download wurde gestartet.");
+        } catch (err) {
+            openAlert("Fehler", "Das Backup konnte nicht erstellt werden.");
+        }
+    }
+
+    function loadCSV(e) { 
+        const r = new FileReader(); 
+        r.onload = (ev) => { 
+            try { 
+                const d = JSON.parse(ev.target.result); 
+                pNames=d.pNames; scores=d.scores; archive=d.archive; startIdx=d.startIdx; 
+                if(d.pEmojis) pEmojis=d.pEmojis; 
+                undoHistory = [];
+                if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+                pendingEndGame = false;
+                resetGameTimer();
+                save(); render(); 
+            } catch(err) { 
+                openAlert("Fehler", "Die Datei konnte nicht als gültiges Backup geladen werden!"); 
+            } 
+        }; 
+        r.readAsText(e.target.files[0]); 
+    }
+    
+    function openHistory() { document.getElementById('histView').style.display = 'block'; renderArchiveList(); }
+    
+    function renderArchiveList() { 
+        document.getElementById('arcList').innerHTML = archive.map((g, idx) => {
+            let displayW = sanitizeOldNames(g.w);
+            let durationText = g.durationMs ? ` | ⏱️ ${formatDuration(g.durationMs)}` : '';
+            return `
+            <div class="history-item">
+                <div><strong>${g.d}${durationText}</strong><br><small>${displayW}</small></div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn-load-hist" onclick="showArchiveGame(${idx})">LADEN</button>
+                    <button class="btn-load-hist" style="background:var(--ronny);" onclick="deleteHistoryItem(${idx})">LÖSCHEN</button>
+                </div>
+            </div>`;
+        }).join('') + (archive.length > 0 ? `<button class="btn-top" style="background:var(--ronny); width:100%; margin-top:15px; padding:10px 0;" onclick="clearAllHistory()">⚠️ GESAMTE HISTORIE LÖSCHEN</button>` : '<div style="color:#aaa; text-align:center; padding:20px;">Keine Einträge vorhanden</div>'); 
+    }
+    
+    function deleteHistoryItem(idx) {
+        openConfirm(
+            "Eintrag löschen?",
+            "Diesen Eintrag aus der Historie löschen? (Die Kronen-Statistik wird sofort live angepasst)",
+            () => {
+                openConfirm(
+                    "Absolut sicher?",
+                    "Bist du dir wirklich absolut sicher? Dieser Schritt kann nicht rückgängig gemacht werden!",
+                    () => {
+                        archive.splice(idx, 1);
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
+            }
+        );
+    }
+
+    function clearAllHistory() {
+        openConfirm(
+            "GESAMTE Historie löschen?",
+            "Möchtest du wirklich die GESAMTE Historie unwiderruflich löschen? (Dadurch werden auch ALLE Kronen zurückgesetzt)",
+            () => {
+                openConfirm(
+                    "Sämtliche Daten verlieren?",
+                    "Bist du dir wirklich absolut sicher? SÄMTLICHE Spiele und Statistiken gehen verloren!",
+                    () => {
+                        archive = [];
+                        save();
+                        renderArchiveList();
+                        render();
+                    }
+                );
+            }
+        );
+    }
+
+    function showArchiveGame(idx) { 
+        let rawNames = archive[idx].names || pNames;
+        arcNames = rawNames.map(n => sanitizeOldNames(n)); 
+        arcScores = JSON.parse(JSON.stringify(archive[idx].s)); 
+        isArcView = true; 
+        document.getElementById('arcBanner').style.display = 'block'; 
+        document.getElementById('histView').style.display='none'; 
+        render(); 
+    }
+    
+    function exitArchive() { isArcView = false; document.getElementById('arcBanner').style.display = 'none'; render(); }
+    
+    function askMasterReset() { 
+        openConfirm(
+            "Kompletter Board-Reset?",
+            "Möchtest du wirklich das Board komplett zurücksetzen? (Dadurch werden ALLE Namen, aktuellen Punkte und die komplette Historie unwiderruflich gelöscht)",
+            () => {
+                openConfirm(
+                    "Unwiderruflich löschen?",
+                    "Bist du dir absolut sicher? Es gibt KEINE Möglichkeit, die Daten danach wiederherzustellen (außer du hast ein Backup)!",
+                    () => {
+                        localStorage.clear(); 
+                        location.reload(); 
+                    }
+                );
+            }
+        );
+    }
+
+    function finishCheck() {
+        const active = getSortedActive();
+        let winners = [];
+        
+        active.forEach(p => { 
+            let s = 0; 
+            scores.forEach(r => s += (parseInt(r[p.i]) || 0)); 
+            if(s >= 10000) { 
+                winners.push(p.n); 
+            } 
+        });
+        
+        let winText = "-";
+        if (winners.length > 1) {
+            winText = "Unentschieden: " + winners.join(", ");
+            finishGame(winText);
+        } else if (winners.length === 1) {
+            winText = "Sieger: " + winners[0];
+            finishGame(winText);
+        } else {
+            openConfirm(
+                "Spiel vorzeitig abbrechen?",
+                "Achtung: Es hat noch kein Spieler die 10.000 Punkte erreicht!\n\nMöchtest du dieses laufende Spiel wirklich vorzeitig abbrechen und eine neue Runde starten?",
+                () => {
+                    winText = "Vorzeitig beendet";
+                    finishGame(winText);
+                }
+            );
+        }
+    }
+
+    function finishGame(winText) {
+        checkForUpdates();
+        if (autoEndTimer) { clearTimeout(autoEndTimer); autoEndTimer = null; }
+        pendingEndGame = false;
+
+        const durationMs = stopTimerAndGetDuration();
+
+        scores = [Array(MAX_P).fill("")]; 
+        undoHistory = [];
+        
+        resetGameTimer();
+
+        playCustomAudio('neue-runde.mp3');
+        
+        playedUnder1000 = Array(MAX_P).fill(false);
+        playedWinnerSound = Array(MAX_P).fill(false);
+        
+        const sorted = getSortedActive();
+        if (sorted.length > 0) {
+            focus = { r: 0, pI: sorted[0].i, apIdx: 0 };
+        }
+        
+        recalculateKingOfTheHill();
+        render(); 
+        save();
+    }
+
+    /* --- NERD STATISTIK FUNKTIONEN --- */
+    function formatDuration(ms) {
+        if (!ms || isNaN(ms)) return "k. A.";
+        let totalSec = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSec / 3600);
+        let minutes = Math.floor((totalSec % 3600) / 60);
+        let seconds = totalSec % 60;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        if (minutes > 0) return `${minutes}m ${seconds}s`;
+        return `${seconds}s`;
+    }
+
+    function closeNerdStats(e) {
+        if (e && e.target !== e.currentTarget && !e.target.classList.contains('nerd-stats-close-btn')) return;
+        const view = document.getElementById('nerdStatsView');
+        view.classList.remove('active');
+    }
+
+    function openNerdStats() {
+        document.getElementById('histView').style.display = 'none';
+        const view = document.getElementById('nerdStatsView');
+        const content = document.getElementById('nerdStatsContent');
+
+        if (!archive || archive.length === 0) {
+            content.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: #aaa;">Noch keine Spiele in der Historie vorhanden! Spiele erst ein paar Runden. 😉</div>';
+            view.classList.add('active');
+            return;
+        }
+
+        let totalGames = archive.length;
+        let totalRoundsPlayed = 0;
+        let totalRonnysGlobal = 0;
+        let totalPointsGlobal = 0;
+        
+        let fastestGame = { time: Infinity, date: "", winner: "" };
+        let slowestGame = { time: 0, date: "", winner: "" };
+        
+        let leastRoundsGame = { rounds: Infinity, date: "", winner: "" };
+        let mostRoundsGame = { rounds: 0, date: "", winner: "" };
+        
+        let highestSingleTurn = { score: 0, player: "", date: "" };
+        let gameWithMostRonnys = { ronnys: 0, date: "" };
+        
+        // Listen für Gleichstände bei Streaks
+        let longestRonnyStreak = { count: 0, players: [], date: "" };
+        let longestNoRonnyStreak = { count: 0, players: [], date: "" };
+        
+        let playerStatsMap = {};
+
+        archive.forEach(g => {
+            let roundsInGame = g.s.length;
+            if (g.s.length > 0 && g.s[g.s.length - 1].every(v => v === "" || v === undefined)) {
+                roundsInGame--;
+            }
+            totalRoundsPlayed += roundsInGame;
+
+            if (g.durationMs) {
+                if (g.durationMs < fastestGame.time) fastestGame = { time: g.durationMs, date: g.d, winner: g.w };
+                if (g.durationMs > slowestGame.time) slowestGame = { time: g.durationMs, date: g.d, winner: g.w };
+            }
+
+            if (roundsInGame < leastRoundsGame.rounds && roundsInGame > 0) leastRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+            if (roundsInGame > mostRoundsGame.rounds) mostRoundsGame = { rounds: roundsInGame, date: g.d, winner: g.w };
+
+            let currentGameRonnys = 0;
+            let gameNames = g.names || pNames;
+
+            let currentRonnyStreaksInGame = {};
+            let currentNoRonnyStreaksInGame = {};
+
+            g.s.forEach((row, rIdx) => {
+                row.forEach((valStr, pIdx) => {
+                    let pName = sanitizeOldNames(gameNames[pIdx]);
+                    if (!pName || pName.trim() === "") return;
+
+                    if (!playerStatsMap[pName]) {
+                        playerStatsMap[pName] = { 
+                            totalPoints: 0, 
+                            ronnys: 0, 
+                            turns: 0,
+                            catSmall: 0, catMed: 0, catBig: 0, catElite: 0, catMeister: 0
+                        };
+                    }
+                    if (currentRonnyStreaksInGame[pName] === undefined) currentRonnyStreaksInGame[pName] = 0;
+                    if (currentNoRonnyStreaksInGame[pName] === undefined) currentNoRonnyStreaksInGame[pName] = 0;
+
+                    let val = parseInt(valStr);
+                    if (!isNaN(val)) {
+                        playerStatsMap[pName].turns++;
+                        playerStatsMap[pName].totalPoints += val;
+                        totalPointsGlobal += val;
+
+                        if (val === 0) {
+                            totalRonnysGlobal++;
+                            currentGameRonnys++;
+                            playerStatsMap[pName].ronnys++;
+
+                            currentRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei Ronny-Streaks
+                            if (currentRonnyStreaksInGame[pName] > longestRonnyStreak.count) {
+                                longestRonnyStreak = { count: currentRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentRonnyStreaksInGame[pName] === longestRonnyStreak.count && currentRonnyStreaksInGame[pName] > 0) {
+                                if (!longestRonnyStreak.players.includes(pName)) {
+                                    longestRonnyStreak.players.push(pName);
+                                }
+                            }
+                            
+                            currentNoRonnyStreaksInGame[pName] = 0;
+
+                        } else {
+                            if (val <= 450) playerStatsMap[pName].catSmall++;
+                            else if (val <= 700) playerStatsMap[pName].catMed++;
+                            else if (val <= 950) playerStatsMap[pName].catBig++;
+                            else if (val <= 1450) playerStatsMap[pName].catElite++;
+                            else playerStatsMap[pName].catMeister++;
+
+                            currentRonnyStreaksInGame[pName] = 0;
+                            currentNoRonnyStreaksInGame[pName]++;
+                            
+                            // Gleichstand oder neuer Rekord bei No-Ronny-Streaks
+                            if (currentNoRonnyStreaksInGame[pName] > longestNoRonnyStreak.count) {
+                                longestNoRonnyStreak = { count: currentNoRonnyStreaksInGame[pName], players: [pName], date: g.d };
+                            } else if (currentNoRonnyStreaksInGame[pName] === longestNoRonnyStreak.count && currentNoRonnyStreaksInGame[pName] > 0) {
+                                if (!longestNoRonnyStreak.players.includes(pName)) {
+                                    longestNoRonnyStreak.players.push(pName);
+                                }
+                            }
+
+                            if (val > highestSingleTurn.score) {
+                                highestSingleTurn = { score: val, player: pName, date: g.d };
+                            }
+                        }
+                    }
+                });
+            });
+
+            if (currentGameRonnys > gameWithMostRonnys.ronnys) {
+                gameWithMostRonnys = { ronnys: currentGameRonnys, date: g.d };
+            }
+        });
+
+        // Hilfsfunktion zur Ermittlung aller Gewinner bei Gleichstand in einer Kategorie
+        function getCategoryWinners(catKey) {
+            let maxVal = 0;
+            let winners = [];
+            Object.keys(playerStatsMap).forEach(pName => {
+                let count = playerStatsMap[pName][catKey] || 0;
+                if (count > maxVal) {
+                    maxVal = count;
+                    winners = [pName];
+                } else if (count === maxVal && count > 0) {
+                    winners.push(pName);
+                }
+            });
+            if (maxVal === 0 || winners.length === 0) return "-";
+            return `${winners.join(', ')} (${maxVal}x)`;
+        }
+
+        let ronnyKing = { name: "-", count: 0 };
+        let pointsKing = { name: "-", points: 0 };
+        let bestAvgPlayer = { name: "-", avg: 0 };
+        let highestRonnyPercentage = { name: "-", pct: 0 };
+
+        Object.keys(playerStatsMap).forEach(pName => {
+            let pData = playerStatsMap[pName];
+            if (pData.ronnys > ronnyKing.count) ronnyKing = { name: pName, count: pData.ronnys };
+            if (pData.totalPoints > pointsKing.points) pointsKing = { name: pName, points: pData.totalPoints };
+
+            let avg = pData.turns > 0 ? Math.round(pData.totalPoints / pData.turns) : 0;
+            if (avg > bestAvgPlayer.avg && pData.turns >= 10) {
+                bestAvgPlayer = { name: pName, avg: avg };
+            }
+
+            let ronnyPct = pData.turns > 0 ? Math.round((pData.ronnys / pData.turns) * 100) : 0;
+            if (ronnyPct > highestRonnyPercentage.pct && pData.turns >= 10) {
+                highestRonnyPercentage = { name: pName, pct: ronnyPct };
+            }
+        });
+
+        let ronnyPlayersStr = longestRonnyStreak.players.join(', ');
+        let noRonnyPlayersStr = longestNoRonnyStreak.players.join(', ');
+
+        content.innerHTML = `
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">⏱️ Zeit-Rekorde</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Schnellstes Spiel:</span>
+                    <span class="nerd-stat-val">${fastestGame.time !== Infinity ? formatDuration(fastestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(fastestGame.winner)} – ${fastestGame.date})</div>
+                <div class="nerd-stat-row" style="margin-top:4px;">
+                    <span class="nerd-stat-label">Langsamstes Spiel:</span>
+                    <span class="nerd-stat-val">${slowestGame.time > 0 ? formatDuration(slowestGame.time) : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(slowestGame.winner)} – ${slowestGame.date})</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🤡 Ronny-Museum (Nuller)</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ewiger Ronny-König:</span>
+                    <span class="nerd-stat-val">${ronnyKing.name} (${ronnyKing.count}x 0)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys am Stück:</span>
+                    <span class="nerd-stat-val">${longestRonnyStreak.count > 0 ? longestRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${ronnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchste Ronny-Quote:</span>
+                    <span class="nerd-stat-val">${highestRonnyPercentage.name} (${highestRonnyPercentage.pct}%)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Ronnys Gesamt:</span>
+                    <span class="nerd-stat-val">${totalRonnysGlobal} Stück</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Meiste Ronnys in 1 Partie:</span>
+                    <span class="nerd-stat-val">${gameWithMostRonnys.ronnys} Stück</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${gameWithMostRonnys.date})</div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🎲 Serien & Lauf</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Serie ohne Ronny:</span>
+                    <span class="nerd-stat-val">${longestNoRonnyStreak.count > 0 ? longestNoRonnyStreak.count + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${noRonnyPlayersStr || 'k. A.'})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Kürzeste Partie:</span>
+                    <span class="nerd-stat-val">${leastRoundsGame.rounds !== Infinity ? leastRoundsGame.rounds + ' Runden' : 'k. A.'}</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(leastRoundsGame.winner)})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Längste Partie:</span>
+                    <span class="nerd-stat-val">${mostRoundsGame.rounds} Runden</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${sanitizeOldNames(mostRoundsGame.winner)})</div>
+                <div class="nerd-stat-row" style="margin-top:2px;">
+                    <span class="nerd-stat-label">Gesamte Runden gespielt:</span>
+                    <span class="nerd-stat-val">${totalRoundsPlayed}</span>
+                </div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">📊 Kategorie-Könige</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">350 – 450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catSmall')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">500 – 700:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMed')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">750 – 950:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catBig')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1000 – 1450:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catElite')}</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">1500+:</span>
+                    <span class="nerd-stat-val">${getCategoryWinners('catMeister')}</span>
+                </div>
+            </div>
+
+            <div class="nerd-card-clean">
+                <div class="nerd-card-header">🔥 Highscores & All-Time</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Höchster Einzelwurf:</span>
+                    <span class="nerd-stat-val">${highestSingleTurn.score} Pkt.</span>
+                </div>
+                <div class="nerd-stat-sub" style="text-align:right;">(${highestSingleTurn.player} – ${highestSingleTurn.date})</div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Punkte-König (Gesamt):</span>
+                    <span class="nerd-stat-val">${pointsKing.name} (${pointsKing.points.toLocaleString()} Pkt.)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Bester Schnitt/Runde:</span>
+                    <span class="nerd-stat-val">${bestAvgPlayer.name} (${bestAvgPlayer.avg} Ø)</span>
+                </div>
+                <div class="nerd-stat-row">
+                    <span class="nerd-stat-label">Gewürfelte Punkte Global:</span>
+                    <span class="nerd-stat-val">${totalPointsGlobal.toLocaleString()} Pkt.</span>
+                </div>
+            </div>
+        `;
+
+        view.classList.add('active');
+    }
+
+    window.addEventListener('scroll', () => {
+        const stickyCopy = document.getElementById('raceTrackStickyCopy');
+        
+        if (window.scrollY >= 450 && viewMode === 'mobile' && showRace && window.innerWidth < window.innerHeight) {
+            if (stickyCopy.style.display !== 'block') {
+                stickyCopy.style.display = 'block';
+                renderRaceTrack();
+            }
+        } else {
+            stickyCopy.style.display = 'none';
+        }
+    }, { passive: true });
+
+    // Globale Aktivitätstracking für Inaktivitäts-Timer
+    ['click', 'touchstart', 'mousemove', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (isPaused) {
+                resumeFromPause();
+            } else {
+                resetInactivityTimer();
+            }
+        }, { passive: true });
+    });
+
+    /* --- AKKURATE STRUKTUR: EXAKT 24 FELDER PRO SEITE (6 REIHEN) --- */
+    
+    const page1 = document.getElementById('padPage1');
+    for(let v=350; v<=1300; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page1.appendChild(b); 
+    }
+
+    const page2 = document.getElementById('padPage2');
+    for(let v=1350; v<=2500; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page2.appendChild(b); 
+    }
+
+    const page3 = document.getElementById('padPage3');
+    for(let v=2550; v<=3700; v+=50) { 
+        const b = document.createElement('button'); 
+        b.className='pad-btn'; 
+        b.innerText=v; 
+        b.onclick=()=> { setV(v); }; 
+        page3.appendChild(b); 
+    }
+
+    /* --- LIVE UHRZEIT, SPIELDAVER & AKKUSTAND --- */
+    function updateTimeAndDuration() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeElem = document.getElementById('time-display');
+        if (timeElem) {
+            timeElem.innerText = `${hours}:${minutes}`;
+        }
+
+        const elapsedElem = document.getElementById('elapsed-display');
+        if (elapsedElem) {
+            let diffMs = accumulatedTimeMs;
+            if (gameActive && currentTurnStartTime && !isPaused) {
+                diffMs += (now.getTime() - currentTurnStartTime);
+            }
+            const totalSec = Math.floor(diffMs / 1000);
+            const eHours = Math.floor(totalSec / 3600);
+            const eMin = Math.floor((totalSec % 3600) / 60);
+            const eSec = totalSec % 60;
+            
+            if (eHours > 0) {
+                elapsedElem.innerText = `⏱️ ${String(eHours).padStart(2, '0')}:${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
+            } else {
+                elapsedElem.innerText = `⏱️ ${String(eMin).padStart(2, '0')}:${String(eSec).padStart(2, '0')}`;
+            }
+        }
+    }
+
+    setInterval(updateTimeAndDuration, 1000);
+    updateTimeAndDuration();
+
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+            function updateBattery() {
+                const level = Math.round(battery.level * 100);
+                const batElem = document.getElementById('battery-display');
+                if (batElem) batElem.innerText = `🔋 ${level}%`;
+            }
+            updateBattery();
+            battery.addEventListener('levelchange', updateBattery);
+        });
+    }
+
+    render();
+    checkChangelog();
+</script>
+</body>
+</html>
