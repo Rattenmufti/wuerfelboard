@@ -1167,12 +1167,16 @@ if (!currentGameId) {
 
     const audioCache = {};
 
-    function playCustomAudio(filename) {
+function playCustomAudio(filename) {
         try {
-            if (!audioCache[filename]) {
-                audioCache[filename] = new Audio(filename);
+            // Ordnerpfad voranstellen:
+            const path = 'audio/' + filename;
+
+            // Überall 'path' statt 'filename' verwenden!
+            if (!audioCache[path]) {
+                audioCache[path] = new Audio(path);
             }
-            const audio = audioCache[filename];
+            const audio = audioCache[path];
             audio.currentTime = 0;
             audio.play().catch(e => playOscillatorFallback());
         } catch(e) {
