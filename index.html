@@ -942,11 +942,13 @@
                 <button class="btn-top" onclick="saveCSV()">💾 BACKUP</button>
                 <button class="btn-top" onclick="document.getElementById('csvIn').click()">📂 LADEN</button>
             </div>
-            <div class="btn-group">
+<div class="btn-group">
                 <button class="btn-top" onclick="toggleFullscreen()">📺 VOLLBILD</button>
                 <button id="btnViewToggle" class="btn-top" onclick="toggleMobile()">📱 MOBIL</button>
-                <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🐎 RENNEN</button>
+                <button id="btnRaceToggle" class="btn-top" onclick="toggleRaceMode()" style="background:#8e44ad;">🏎️ RENNEN</button>
                 <button class="btn-top" onclick="toggleTheme()">🌓 MODE</button>
+                <!-- NEU: Ansage-Button direkt neben MODE -->
+                <button id="toggleAudioBtn" class="btn-top" onclick="togglePointsAudio()" title="Zahlenansage an/aus">&#128066; Ansage</button>
             </div>
             <div class="btn-group">
                 <button class="btn-top" onclick="openHistory()" style="background:var(--accent)">📜 HISTORIE</button>
@@ -1027,7 +1029,9 @@
     // ==========================================
     const APP_VERSION = "0.995";
 
-    function applyVersionToUI() {
+	let pointsAudioEnabled = true; // Steuert, ob Zahlen-Audio (ab 350) abgespielt wird
+    
+	function applyVersionToUI() {
         document.title = `Würfelboard v${APP_VERSION} Stable`;
         document.querySelectorAll('.app-version-text').forEach(el => {
             el.innerText = APP_VERSION;
@@ -1064,6 +1068,15 @@
             document.getElementById('changelogModal').style.display = 'flex';
         }
     }
+	
+function togglePointsAudio() {
+    pointsAudioEnabled = !pointsAudioEnabled;
+    const btn = document.getElementById('toggleAudioBtn');
+    
+    if (btn) {
+        btn.innerText = pointsAudioEnabled ? '\u{1F50A} Ansage' : '\u{1F507} Ansage';
+    }
+}
 
     function closeChangelogModal() {
         const isChecked = document.getElementById('chkHideChangelog').checked;
@@ -1326,7 +1339,7 @@ function triggerNumberPop(value) {
         document.body.appendChild(overlay);
 
         if (value === 0 || value === '0') {
-            // Normale Null -> Zufälligen Ronny-Sound um 0,5s verzögert abspielen
+            // Normale Null -> Zufälligen Ronny-Sound um 0,5s verzögert abspielen (IMMER)
             setTimeout(() => {
                 const zeroSounds = [
                     'und-weg.mp3',
@@ -1343,9 +1356,15 @@ function triggerNumberPop(value) {
                 playCustomAudio(randomZeroSound);
             }, 500);
         } else {
-            // Normale Zahlen -> Sound nach 500ms
+            // Normale Zahlen -> Prüfen ob Ansage-Schalter aktiv ist
             setTimeout(() => {
-                playCustomAudio(`${value}.mp3`);
+                if (pointsAudioEnabled) {
+                    // Wenn AN -> Sprachansage (z. B. 350.mp3)
+                    playCustomAudio(`${value}.mp3`);
+                } else {
+                    // Wenn AUS -> Neutraler Punkte-Sound
+                    playCustomAudio('punkte.mp3');
+                }
             }, 500);
         }
 
