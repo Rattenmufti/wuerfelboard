@@ -1691,6 +1691,17 @@ function triggerNumberPop(value) {
         }
     }
 
+function syncActiveCellFocus() {
+    const activeId = (focus && focus.r !== undefined && focus.pI !== undefined && !isArcView)
+        ? `input-${focus.r}-${focus.pI}`
+        : null;
+
+    document.querySelectorAll('.score-input').forEach(el => {
+        const isActive = activeId !== null && el.id === activeId;
+        el.classList.toggle('system-focus', isActive);
+    });
+}
+
 function setV(v) { 
     if(isArcView || isLocked) return; 
 
@@ -1917,7 +1928,21 @@ function executeUndo() {
                 inp.value = activeScores[rIdx][p.i] || ""; inp.type = "number"; inp.id = `input-${rIdx}-${p.i}`;
                 if (isArcView) inp.setAttribute('readonly', 'true');
                 if(viewMode === 'mobile') inp.setAttribute('inputmode', 'none'); 
-                inp.onfocus = () => { if(!isArcView) { focus = { r: rIdx, pI: p.i, apIdx }; scrollCheck(inp); } };
+				inp.onfocus = () => {
+    				if (!isArcView) {
+        				focus = { r: rIdx, pI: p.i, apIdx };
+        				syncActiveCellFocus();
+        				scrollCheck(inp);
+    				}
+				};
+
+				inp.onclick = () => {
+    				if (!isArcView) {
+        				focus = { r: rIdx, pI: p.i, apIdx };
+        				syncActiveCellFocus();
+        				scrollCheck(inp);
+   				 }
+				};
                 inp.onkeydown = (e) => { if(e.key === "Enter" || e.key === "Tab") { e.preventDefault(); isQuickPress = false; jumpToNext(); } };
                 inp.oninput = (e) => { 
                     if(!isArcView) { 
