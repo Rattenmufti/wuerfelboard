@@ -1356,14 +1356,10 @@ function triggerNumberPop(value) {
                 playCustomAudio(randomZeroSound);
             }, 500);
         } else {
-            // Normale Zahlen -> Prüfen ob Ansage-Schalter aktiv ist
+            // Normale Zahlen -> Nur abspielen, wenn Ansage aktiv ist (vermeidet doppelten Sound)
             setTimeout(() => {
                 if (pointsAudioEnabled) {
-                    // Wenn AN -> Sprachansage (z. B. 350.mp3)
                     playCustomAudio(`${value}.mp3`);
-                } else {
-                    // Wenn AUS -> Neutraler Punkte-Sound
-                    playCustomAudio('punkte.mp3');
                 }
             }, 500);
         }
